@@ -26,6 +26,7 @@ import { ProgressBarToast } from './components/common/ProgressBarToast';
 import { PhotoViewerModal } from './components/modals/PhotoViewerModal';
 import { VideoPlayerModal } from './components/modals/VideoPlayerModal';
 import { DocumentViewerModal } from './components/modals/DocumentViewerModal';
+import { FullAudioPlayerModal } from './components/modals/FullAudioPlayerModal';
 import {
   ConflictDialog,
   DeleteDialog,
@@ -128,6 +129,10 @@ export default function App() {
   const [duration, setDuration] = React.useState(0);
   const [volume, setVolume] = React.useState(0.85);
   const [isMuted, setIsMuted] = React.useState(false);
+  const [playbackRate, setPlaybackRate] = React.useState(1);
+  const [isShuffle, setIsShuffle] = React.useState(false);
+  const [repeatMode, setRepeatMode] = React.useState<'off' | 'all' | 'one'>('all');
+  const [isFullAudioOpen, setIsFullAudioOpen] = React.useState(false);
 
   // Modals
   const [activePhoto, setActivePhoto] = React.useState<FileItem | null>(null);
@@ -465,13 +470,36 @@ export default function App() {
 
   const handleNextTrack = () => {
     if (!currentTrack || allAudio.length === 0) return;
+    if (repeatMode === 'one') {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
+      return;
+    }
+    if (isShuffle) {
+      const rand = Math.floor(Math.random() * allAudio.length);
+      handlePlayTrack(allAudio[rand]);
+      return;
+    }
     const idx = allAudio.findIndex((t) => t.id === currentTrack.id);
+    if (idx === allAudio.length - 1 && repeatMode === 'off') {
+      setIsPlaying(false);
+      return;
+    }
     const nextIdx = (idx + 1) % allAudio.length;
     handlePlayTrack(allAudio[nextIdx]);
   };
 
   const handlePrevTrack = () => {
     if (!currentTrack || allAudio.length === 0) return;
+    if (currentTime > 3) {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        setCurrentTime(0);
+      }
+      return;
+    }
     const idx = allAudio.findIndex((t) => t.id === currentTrack.id);
     const prevIdx = (idx - 1 + allAudio.length) % allAudio.length;
     handlePlayTrack(allAudio[prevIdx]);
@@ -505,7 +533,17 @@ export default function App() {
       await api.createFolder(currentPath, name);
       loadDirectory(currentPath);
     } catch (err: any) {
-      alert(`Error creating folder: ${err.message}`);
+      setOperationProgress({
+        id: `err_${Date.now()}`,
+        type: 'move',
+        currentItemName: `Failed to create folder: ${err.message}`,
+        totalItems: 1,
+        processedItems: 0,
+        percentage: 0,
+        status: 'error',
+        error: err.message,
+      });
+      setTimeout(() => setOperationProgress(null), 3000);
     }
   };
 
@@ -517,7 +555,17 @@ export default function App() {
       loadDirectory(currentPath);
       loadInitialData();
     } catch (err: any) {
-      alert(`Error renaming item: ${err.message}`);
+      setOperationProgress({
+        id: `err_${Date.now()}`,
+        type: 'move',
+        currentItemName: `Failed to rename item: ${err.message}`,
+        totalItems: 1,
+        processedItems: 0,
+        percentage: 0,
+        status: 'error',
+        error: err.message,
+      });
+      setTimeout(() => setOperationProgress(null), 3000);
     }
   };
 
@@ -922,18 +970,79 @@ export default function App() {
         onDelete={(p) => setDeleteModal({ isOpen: true, items: [p] })}
       />
 
-      {/* Video Player Modal */}
+      {/* Video Player Modal with Playlist & PiP */}
       <VideoPlayerModal
         currentVideo={activeVideo}
+        allVideos={allVideos}
+        onNavigateVideo={(v) => setActiveVideo(v)}
         onClose={() => setActiveVideo(null)}
         onRevealInFolder={handleRevealInFolder}
       />
 
-      {/* Document Text Viewer Modal */}
+      {/* Integrated Multi-Format Document Reader Modal */}
       <DocumentViewerModal
         currentDocument={activeDocument}
         onClose={() => setActiveDocument(null)}
         onRevealInFolder={handleRevealInFolder}
+      />
+
+      {/* Full Immersive Audio Studio Player Modal */}
+      <FullAudioPlayerModal
+        isOpen={isFullAudioOpen}
+        currentTrack={currentTrack}
+        allTracks={allAudio}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+        duration={duration}
+        volume={volume}
+        isMuted={isMuted}
+        playbackRate={playbackRate}
+        isShuffle={isShuffle}
+        repeatMode={repeatMode}
+        onTogglePlay={() => {
+          if (audioRef.current) {
+            if (isPlaying) {
+              audioRef.current.pause();
+              setIsPlaying(false);
+            } else {
+              audioRef.current.play().catch(() => {});
+              setIsPlaying(true);
+            }
+          }
+        }}
+        onSeek={(time) => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+          }
+        }}
+        onNext={handleNextTrack}
+        onPrev={handlePrevTrack}
+        onSelectTrack={(track) => handlePlayTrack(track)}
+        onChangeVolume={(vol) => {
+          setVolume(vol);
+          if (audioRef.current) {
+            audioRef.current.volume = vol;
+            audioRef.current.muted = vol === 0;
+            setIsMuted(vol === 0);
+          }
+        }}
+        onToggleMute={() => {
+          if (audioRef.current) {
+            audioRef.current.muted = !isMuted;
+            setIsMuted(!isMuted);
+          }
+        }}
+        onChangePlaybackRate={(rate) => {
+          setPlaybackRate(rate);
+          if (audioRef.current) audioRef.current.playbackRate = rate;
+        }}
+        onToggleShuffle={() => setIsShuffle((prev) => !prev)}
+        onCycleRepeat={() => {
+          setRepeatMode((prev) => (prev === 'all' ? 'one' : prev === 'one' ? 'off' : 'all'));
+        }}
+        onRevealInFolder={handleRevealInFolder}
+        onClose={() => setIsFullAudioOpen(false)}
       />
 
       {/* Properties Inspector Modal */}
@@ -1007,6 +1116,12 @@ export default function App() {
         duration={duration}
         volume={volume}
         isMuted={isMuted}
+        isShuffle={isShuffle}
+        onToggleShuffle={() => setIsShuffle((prev) => !prev)}
+        repeatMode={repeatMode}
+        onCycleRepeat={() => {
+          setRepeatMode((prev) => (prev === 'all' ? 'one' : prev === 'one' ? 'off' : 'all'));
+        }}
         onTogglePlay={() => {
           if (audioRef.current) {
             if (isPlaying) {
@@ -1045,7 +1160,7 @@ export default function App() {
           setIsPlaying(false);
           setCurrentTrack(null);
         }}
-        onExpand={() => setCurrentView('audio')}
+        onExpand={() => setIsFullAudioOpen(true)}
       />
 
       {/* File Operation Progress Toast */}

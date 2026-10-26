@@ -5,15 +5,20 @@ import { formatFileSize, formatDuration, formatDate } from '../../utils/fileSyst
 
 interface VideoPlayerModalProps {
   currentVideo: FileItem | null;
+  allVideos?: FileItem[];
+  onNavigateVideo?: (video: FileItem) => void;
   onClose: () => void;
   onRevealInFolder: (video: FileItem) => void;
 }
 
 export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   currentVideo,
+  allVideos = [],
+  onNavigateVideo,
   onClose,
   onRevealInFolder,
 }) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [currentTime, setCurrentTime] = React.useState(0);
@@ -21,29 +26,74 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [volume, setVolume] = React.useState(0.9);
   const [isMuted, setIsMuted] = React.useState(false);
   const [playbackRate, setPlaybackRate] = React.useState(1);
+  const [isLooping, setIsLooping] = React.useState(false);
+  const [aspectMode, setAspectMode] = React.useState<'contain' | 'cover'>('contain');
+  const [showPlaylist, setShowPlaylist] = React.useState(false);
+  const [osdMessage, setOsdMessage] = React.useState<string | null>(null);
+  const osdTimeout = React.useRef<any>(null);
+
+  const showOsd = (msg: string) => {
+    setOsdMessage(msg);
+    if (osdTimeout.current) clearTimeout(osdTimeout.current);
+    osdTimeout.current = setTimeout(() => setOsdMessage(null), 1200);
+  };
 
   React.useEffect(() => {
+    setCurrentTime(0);
+    setIsPlaying(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
+  }, [currentVideo?.path]);
+
+  // Keyboard navigation & controls
+  React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
       if (e.key === 'Escape') onClose();
-      if (e.key === ' ') {
+      if (e.key === ' ' || e.key.toLowerCase() === 'k') {
         e.preventDefault();
         togglePlay();
+      } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        handleSeekRelative(10);
+      } else if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        handleSeekRelative(-10);
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      } else if (e.key.toLowerCase() === 'm') {
+        toggleMute();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleVolumeChange(Math.min(1, volume + 0.1));
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleVolumeChange(Math.max(0, volume - 0.1));
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying]);
+  }, [isPlaying, volume, isMuted, currentTime, duration]);
 
   if (!currentVideo) return null;
+
+  const currentIdx = allVideos.findIndex((v) => v.path === currentVideo.path);
+  const canGoPrev = currentIdx > 0;
+  const canGoNext = currentIdx < allVideos.length - 1 && currentIdx !== -1;
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
+        setIsPlaying(false);
+        showOsd('Paused');
       } else {
         videoRef.current.play().catch(() => {});
+        setIsPlaying(true);
+        showOsd('Playing');
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -63,19 +113,32 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     }
   };
 
-  const handleVolumeChange = (vol: number) => {
-    setVolume(vol);
+  const handleSeekRelative = (deltaSeconds: number) => {
     if (videoRef.current) {
-      videoRef.current.volume = vol;
-      videoRef.current.muted = vol === 0;
-      setIsMuted(vol === 0);
+      const target = Math.max(0, Math.min(duration || 60, currentTime + deltaSeconds));
+      videoRef.current.currentTime = target;
+      setCurrentTime(target);
+      showOsd(`${deltaSeconds > 0 ? '+' : ''}${deltaSeconds}s`);
     }
+  };
+
+  const handleVolumeChange = (vol: number) => {
+    const rounded = Math.round(vol * 100) / 100;
+    setVolume(rounded);
+    if (videoRef.current) {
+      videoRef.current.volume = rounded;
+      videoRef.current.muted = rounded === 0;
+      setIsMuted(rounded === 0);
+    }
+    showOsd(`Volume: ${Math.round(rounded * 100)}%`);
   };
 
   const toggleMute = () => {
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const next = !isMuted;
+      videoRef.current.muted = next;
+      setIsMuted(next);
+      showOsd(next ? 'Muted' : 'Unmuted');
     }
   };
 
@@ -84,80 +147,202 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     if (videoRef.current) {
       videoRef.current.playbackRate = rate;
     }
+    showOsd(`Speed: ${rate}x`);
   };
 
-  const handleFullscreen = () => {
-    if (videoRef.current) {
-      if (videoRef.current.requestFullscreen) {
-        videoRef.current.requestFullscreen();
-      }
+  const toggleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
     }
+  };
+
+  const togglePiP = async () => {
+    if (!videoRef.current) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        showOsd('PiP Closed');
+      } else if (document.pictureInPictureEnabled) {
+        await videoRef.current.requestPictureInPicture();
+        showOsd('Picture-in-Picture');
+      }
+    } catch {
+      showOsd('PiP Not Supported');
+    }
+  };
+
+  const handleDownload = () => {
+    const url = currentVideo.mediaUrl || `/api/media/content?path=${encodeURIComponent(currentVideo.path)}`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = currentVideo.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col text-white select-none animate-in fade-in duration-150 font-sans">
-      {/* Top Header */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-white/10 bg-neutral-900/90 backdrop-blur-md">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 z-50 bg-[#0d0f12]/98 backdrop-blur-2xl flex flex-col text-white select-none animate-in fade-in duration-150 font-sans"
+    >
+      {/* Top Header Bar */}
+      <div className="h-14 px-4 flex items-center justify-between border-b border-white/10 bg-[#16181c]/80 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors"
+            className="p-2 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
             title="Close (Esc)"
           >
             <MaterialIcon name="close" size={20} />
           </button>
           <div className="min-w-0">
-            <h2 className="text-sm font-medium truncate max-w-md">{currentVideo.name}</h2>
-            <div className="text-[11px] text-neutral-400">
-              {formatFileSize(currentVideo.size)} · {formatDate(currentVideo.mtime)}
+            <h2 className="text-sm font-medium truncate max-w-md font-display">{currentVideo.name}</h2>
+            <div className="text-[11px] text-neutral-400 flex items-center gap-2 mt-0.5">
+              <span>{formatFileSize(currentVideo.size)}</span>
+              <span>·</span>
+              <span>Modified {formatDate(currentVideo.mtime)}</span>
+              {currentIdx !== -1 && allVideos.length > 0 && (
+                <>
+                  <span>·</span>
+                  <span>Video {currentIdx + 1} of {allVideos.length}</span>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {allVideos.length > 1 && (
+            <button
+              onClick={() => setShowPlaylist(!showPlaylist)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                showPlaylist ? 'bg-[#0b57d0] text-white shadow-xs' : 'bg-white/10 hover:bg-white/20 text-neutral-200'
+              }`}
+            >
+              <MaterialIcon name="playlist_play" size={17} />
+              <span className="hidden sm:inline">Playlist ({allVideos.length})</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleDownload}
+            className="p-2 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+            title="Download Video"
+          >
+            <MaterialIcon name="download" size={19} />
+          </button>
+
           <button
             onClick={() => onRevealInFolder(currentVideo)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-neutral-200 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-neutral-200 transition-colors cursor-pointer"
           >
             <MaterialIcon name="folder_open" size={16} />
-            <span>Reveal in Folder</span>
+            <span className="hidden sm:inline">Reveal in Folder</span>
           </button>
         </div>
       </div>
 
-      {/* Main Video Surface */}
-      <div className="flex-1 relative flex items-center justify-center p-4 overflow-hidden">
-        <video
-          ref={videoRef}
-          src={currentVideo.mediaUrl || `/api/media/content?path=${encodeURIComponent(currentVideo.path)}`}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={() => {
-            if (videoRef.current?.duration) setDuration(videoRef.current.duration);
-          }}
-          onEnded={() => setIsPlaying(false)}
-          onClick={togglePlay}
-          className="max-h-[75vh] max-w-[85vw] rounded-2xl shadow-2xl bg-black cursor-pointer"
-        />
-
-        {/* Video play overlay if paused */}
-        {!isPlaying && (
-          <div
+      {/* Main Video Surface & Optional Playlist Sidebar */}
+      <div className="flex-1 relative flex overflow-hidden">
+        <div className="flex-1 relative flex items-center justify-center p-4 bg-black/40">
+          <video
+            ref={videoRef}
+            src={currentVideo.mediaUrl || `/api/media/content?path=${encodeURIComponent(currentVideo.path)}`}
+            loop={isLooping}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={() => {
+              if (videoRef.current?.duration) setDuration(videoRef.current.duration);
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              if (canGoNext && onNavigateVideo) {
+                onNavigateVideo(allVideos[currentIdx + 1]);
+              }
+            }}
             onClick={togglePlay}
-            className="absolute inset-0 flex items-center justify-center cursor-pointer group"
-          >
-            <div className="w-20 h-20 rounded-full bg-[#0b57d0]/90 group-hover:bg-[#0b57d0] flex items-center justify-center text-white shadow-2xl transition-transform group-hover:scale-110">
-              <MaterialIcon name="play_arrow" fill={true} size={40} className="ml-1" />
+            onDoubleClick={toggleFullscreen}
+            className={`max-h-[75vh] max-w-[85vw] rounded-2xl shadow-2xl bg-black cursor-pointer transition-all ${
+              aspectMode === 'cover' ? 'w-full h-full object-cover' : 'object-contain'
+            }`}
+          />
+
+          {/* OSD Toast Notification */}
+          {osdMessage && (
+            <div className="absolute top-8 pointer-events-none px-4 py-2 rounded-full bg-black/80 backdrop-blur-md text-white text-xs font-medium border border-white/15 shadow-xl animate-in fade-in zoom-in-95 duration-100">
+              {osdMessage}
+            </div>
+          )}
+
+          {/* Video Play Overlay if paused */}
+          {!isPlaying && (
+            <div
+              onClick={togglePlay}
+              className="absolute inset-0 flex items-center justify-center cursor-pointer group"
+            >
+              <div className="w-20 h-20 rounded-full bg-[#0b57d0]/90 group-hover:bg-[#0b57d0] flex items-center justify-center text-white shadow-2xl transition-transform group-hover:scale-110 active:scale-95">
+                <MaterialIcon name="play_arrow" fill size={40} className="ml-1" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Playlist Drawer */}
+        {showPlaylist && (
+          <div className="w-80 border-l border-white/10 bg-[#16181c]/95 backdrop-blur-xl p-4 overflow-y-auto space-y-2 animate-in slide-in-from-right duration-200 font-sans shrink-0">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-3">
+              <span className="font-medium text-sm text-neutral-100 font-display">Video Playlist</span>
+              <button
+                onClick={() => setShowPlaylist(false)}
+                className="p-1 text-neutral-400 hover:text-white rounded-full hover:bg-white/10"
+              >
+                <MaterialIcon name="close" size={16} />
+              </button>
+            </div>
+
+            <div className="space-y-1.5">
+              {allVideos.map((vid, idx) => {
+                const isActive = vid.path === currentVideo.path;
+                return (
+                  <div
+                    key={vid.path}
+                    onClick={() => onNavigateVideo?.(vid)}
+                    className={`flex items-center gap-3 p-2.5 rounded-xl transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#0b57d0]/30 border border-[#0b57d0]/60 text-white'
+                        : 'hover:bg-white/5 text-neutral-300'
+                    }`}
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-black/40 flex items-center justify-center shrink-0">
+                      <MaterialIcon
+                        name={isActive ? (isPlaying ? 'volume_up' : 'pause') : 'movie'}
+                        size={18}
+                        className={isActive ? 'text-[#a8c7fa]' : 'text-neutral-400'}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium truncate">{vid.name}</div>
+                      <div className="text-[10px] text-neutral-400 mt-0.5">
+                        {formatDuration(vid.duration || 0)} · {formatFileSize(vid.size)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Floating Control Bar */}
-      <div className="p-4 bg-gradient-to-t from-black/90 to-transparent">
-        <div className="max-w-4xl mx-auto bg-neutral-900/90 border border-white/15 rounded-3xl p-3.5 shadow-2xl backdrop-blur-md">
-          {/* Progress Slider */}
+      {/* Floating Bottom Control Bar */}
+      <div className="p-4 bg-gradient-to-t from-black/95 to-transparent shrink-0">
+        <div className="max-w-4xl mx-auto bg-[#1e2024]/90 border border-white/15 rounded-3xl p-3.5 shadow-2xl backdrop-blur-xl">
+          {/* Progress Timeline Scrubber */}
           <div
             className="relative h-2 bg-white/20 hover:h-2.5 rounded-full cursor-pointer group transition-all"
             onClick={(e) => {
@@ -167,56 +352,85 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             }}
           >
             <div
-              className="absolute top-0 left-0 h-full bg-[#a8c7fa] rounded-full group-hover:bg-[#d3e3fd]"
+              className="absolute top-0 left-0 h-full bg-[#0b57d0] rounded-full group-hover:bg-[#a8c7fa] transition-all"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           {/* Controls Row */}
-          <div className="flex items-center justify-between mt-3 text-xs">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between mt-3 text-xs flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Previous Video in Queue */}
+              {allVideos.length > 1 && (
+                <button
+                  onClick={() => canGoPrev && onNavigateVideo?.(allVideos[currentIdx - 1])}
+                  disabled={!canGoPrev}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    canGoPrev ? 'hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+                  }`}
+                  title="Previous Video"
+                >
+                  <MaterialIcon name="skip_previous" size={20} />
+                </button>
+              )}
+
+              {/* Play / Pause */}
               <button
                 onClick={togglePlay}
-                className="w-9 h-9 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white flex items-center justify-center transition-colors"
-                title={isPlaying ? 'Pause' : 'Play'}
+                className="w-9 h-9 rounded-full bg-[#0b57d0] hover:bg-[#0842a0] text-white flex items-center justify-center transition-colors cursor-pointer shadow-xs active:scale-95"
+                title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
               >
-                <MaterialIcon name={isPlaying ? 'pause' : 'play_arrow'} fill={true} size={20} className={!isPlaying ? 'ml-0.5' : ''} />
-              </button>
-              <button
-                onClick={() => handleSeek(Math.max(0, currentTime - 5))}
-                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300"
-                title="Rewind 5s"
-              >
-                <MaterialIcon name="replay_5" size={18} />
+                <MaterialIcon name={isPlaying ? 'pause' : 'play_arrow'} fill size={20} className={!isPlaying ? 'ml-0.5' : ''} />
               </button>
 
-              <div className="text-neutral-300 font-mono text-[11px]">
+              {/* Next Video in Queue */}
+              {allVideos.length > 1 && (
+                <button
+                  onClick={() => canGoNext && onNavigateVideo?.(allVideos[currentIdx + 1])}
+                  disabled={!canGoNext}
+                  className={`p-1.5 rounded-full transition-colors ${
+                    canGoNext ? 'hover:bg-white/10 text-neutral-300 hover:text-white cursor-pointer' : 'text-neutral-600 opacity-40 cursor-not-allowed'
+                  }`}
+                  title="Next Video"
+                >
+                  <MaterialIcon name="skip_next" size={20} />
+                </button>
+              )}
+
+              {/* Seek Back & Forward 10s */}
+              <button
+                onClick={() => handleSeekRelative(-10)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                title="Rewind 10s (Left Arrow)"
+              >
+                <MaterialIcon name="replay_10" size={20} />
+              </button>
+              <button
+                onClick={() => handleSeekRelative(10)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                title="Forward 10s (Right Arrow)"
+              >
+                <MaterialIcon name="forward_10" size={20} />
+              </button>
+
+              {/* Timestamp Counter */}
+              <div className="text-neutral-300 font-mono text-[11px] ml-1">
                 <span>{formatDuration(currentTime)}</span>
                 <span className="mx-1 text-neutral-500">/</span>
                 <span>{formatDuration(duration || 30)}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Playback rate selector */}
-              <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full">
-                {[0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                  <button
-                    key={rate}
-                    onClick={() => handleRateChange(rate)}
-                    className={`px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
-                      playbackRate === rate ? 'bg-[#0b57d0] text-white' : 'text-neutral-300 hover:text-white'
-                    }`}
-                  >
-                    {rate}x
-                  </button>
-                ))}
-              </div>
-
-              {/* Volume */}
+            {/* Right: Audio Volume, Speed, PiP, Fullscreen */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Volume Slider */}
               <div className="flex items-center gap-1.5">
-                <button onClick={toggleMute} className="p-1 hover:text-white text-neutral-300">
-                  <MaterialIcon name={isMuted || volume === 0 ? 'volume_off' : 'volume_up'} size={18} />
+                <button
+                  onClick={toggleMute}
+                  className="p-1 hover:text-white text-neutral-300 cursor-pointer"
+                  title={isMuted ? 'Unmute (M)' : 'Mute (M)'}
+                >
+                  <MaterialIcon name={isMuted || volume === 0 ? 'volume_off' : volume > 0.5 ? 'volume_up' : 'volume_down'} size={19} />
                 </button>
                 <input
                   type="range"
@@ -225,14 +439,69 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
                   step={0.05}
                   value={isMuted ? 0 : volume}
                   onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                  className="w-16 h-1 accent-[#a8c7fa] cursor-pointer"
+                  className="w-16 h-1 accent-[#0b57d0] cursor-pointer"
+                  title={`Volume: ${Math.round((isMuted ? 0 : volume) * 100)}%`}
                 />
               </div>
 
+              {/* Playback Speed selector */}
+              <div className="flex items-center gap-0.5 bg-white/10 px-1.5 py-0.5 rounded-full">
+                {[0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => handleRateChange(rate)}
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-colors cursor-pointer ${
+                      playbackRate === rate ? 'bg-[#0b57d0] text-white shadow-2xs' : 'text-neutral-300 hover:text-white'
+                    }`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+
+              {/* Loop Toggle */}
               <button
-                onClick={handleFullscreen}
-                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white"
-                title="Fullscreen"
+                onClick={() => {
+                  setIsLooping(!isLooping);
+                  showOsd(isLooping ? 'Loop Off' : 'Loop On');
+                }}
+                className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                  isLooping ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Loop Video"
+              >
+                <MaterialIcon name="repeat" size={18} />
+              </button>
+
+              {/* Aspect Ratio Toggle */}
+              <button
+                onClick={() => {
+                  const next = aspectMode === 'contain' ? 'cover' : 'contain';
+                  setAspectMode(next);
+                  showOsd(`Aspect: ${next === 'contain' ? 'Fit' : 'Fill'}`);
+                }}
+                className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                  aspectMode === 'cover' ? 'bg-white/20 text-white' : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Toggle Aspect Ratio (Fit / Fill)"
+              >
+                <MaterialIcon name={aspectMode === 'cover' ? 'aspect_ratio' : 'fit_screen'} size={18} />
+              </button>
+
+              {/* Picture-in-Picture */}
+              <button
+                onClick={togglePiP}
+                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                title="Picture-in-Picture"
+              >
+                <MaterialIcon name="picture_in_picture_alt" size={18} />
+              </button>
+
+              {/* Fullscreen */}
+              <button
+                onClick={toggleFullscreen}
+                className="p-1.5 rounded-full hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                title="Fullscreen (F)"
               >
                 <MaterialIcon name="fullscreen" size={20} />
               </button>

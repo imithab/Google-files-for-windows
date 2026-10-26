@@ -244,6 +244,61 @@ C:\\Users\\GoogleDesigner\\Downloads,32,2100000000,NeedsReview
     {
       name: 'Design_System_Specification.pdf',
       content: `%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj\n3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000010 00000 n\n0000000060 00000 n\n0000000115 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n190\n%%EOF`
+    },
+    {
+      name: 'Files_Studio_Release_Notes_v1.0.txt',
+      content: `===================================================================
+FILES STUDIO - OFFICIAL WINDOWS RELEASE NOTES v1.0
+===================================================================
+
+Release Date: October 2026
+Engine: Hybrid High-Performance Electron & Local Virtual Storage Engine
+Design Standard: Google Material 3 & Modern Windows Fluent Geometry
+
+HIGHLIGHTS & KEY FEATURES
+-------------------------------------------------------------------
+1. Universal Media Discovery
+   - Photos View: Dynamic albums, EXIF inspector, Pan/Zoom, Filmstrip carousel.
+   - Video Player: Seamless playback, PiP, playback rates (0.5x - 2x), Skip +/- 10s.
+   - Audio Engine: Floating dockable Mini-Player & Fullscreen Immersive Studio player.
+   - Document Reader: Integrated multi-format reader for Markdown, Text, Code, CSV & PDFs.
+
+2. Filesystem Integrity
+   - Dual-pane side-by-side file management.
+   - Conflict resolution for file collisions (Overwrite, Skip, Keep Both).
+   - Fast instant search across drives with category filters.
+   - Clean storage analysis with duplicate item visualizer.
+
+3. Desktop Ready
+   - Frameless Windows titlebar with drag regions.
+   - Offline-bundled Google Sans typography.
+   - Ready for packaging into standalone .exe.
+`
+    },
+    {
+      name: 'App_Configuration.json',
+      content: `{
+  "appId": "com.googledesign.filesstudio",
+  "name": "Files Studio",
+  "version": "1.0.0",
+  "platform": "win32",
+  "engine": {
+    "node": "22.x",
+    "electron": "33.x",
+    "storage": "LocalIndexedVirtualEngine"
+  },
+  "ui": {
+    "fontFamily": "Google Sans, Outfit, system-ui",
+    "defaultTheme": "light",
+    "accentColor": "emerald",
+    "enableHardwareAcceleration": true
+  },
+  "indexing": {
+    "autoScan": true,
+    "scanIntervalMinutes": 15,
+    "maxDepth": 8
+  }
+}`
     }
   ];
   for (const doc of documents) {
