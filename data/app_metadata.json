@@ -1,0 +1,55 @@
+{
+  "favourites": [
+    "C:\\Users\\GoogleDesigner\\Pictures\\Camera\\IMG_20261025_142318.svg",
+    "C:\\Users\\GoogleDesigner\\Music\\Ambient_Dawn_Harmony.wav",
+    "C:\\Users\\GoogleDesigner\\Documents\\Google_Design_Library_Material_You_2026.md"
+  ],
+  "collections": [
+    {
+      "id": "col_1",
+      "name": "Material You 2026",
+      "description": "Design system assets and tokens curated for Files Studio",
+      "itemPaths": [
+        "C:\\Users\\GoogleDesigner\\Pictures\\Screenshots\\Screenshot_2026-10-25_DesignTokens.svg",
+        "C:\\Users\\GoogleDesigner\\Documents\\Google_Design_Library_Material_You_2026.md"
+      ],
+      "createdAt": 1792796320437,
+      "updatedAt": 1792796320437,
+      "coverImage": "C:\\Users\\GoogleDesigner\\Pictures\\Screenshots\\Screenshot_2026-10-25_DesignTokens.svg"
+    },
+    {
+      "id": "col_2",
+      "name": "Scenic Wallpapers",
+      "description": "High-res desktop backgrounds",
+      "itemPaths": [
+        "C:\\Users\\GoogleDesigner\\Pictures\\Wallpapers\\Cyberpunk_Neon_Metropolis.svg",
+        "C:\\Users\\GoogleDesigner\\Pictures\\Wallpapers\\Minimalist_Desert_Dunes.svg"
+      ],
+      "createdAt": 1792537120437,
+      "updatedAt": 1792537120437,
+      "coverImage": "C:\\Users\\GoogleDesigner\\Pictures\\Wallpapers\\Cyberpunk_Neon_Metropolis.svg"
+    }
+  ],
+  "recentActivity": [],
+  "settings": {
+    "theme": "dark",
+    "accentColor": "emerald",
+    "thumbnailSize": "medium",
+    "showFileExtensions": true,
+    "showHiddenFiles": false,
+    "confirmDelete": true,
+    "enableDualPane": false,
+    "indexedFolders": [
+      "C:\\Users\\GoogleDesigner\\Pictures",
+      "C:\\Users\\GoogleDesigner\\Documents",
+      "C:\\Users\\GoogleDesigner\\Downloads",
+      "C:\\Users\\GoogleDesigner\\Music",
+      "C:\\Users\\GoogleDesigner\\Videos",
+      "C:\\Users\\GoogleDesigner\\Desktop"
+    ],
+    "excludedFolders": [
+      "C:\\Windows\\Temp",
+      "C:\\$Recycle.Bin"
+    ]
+  }
+}

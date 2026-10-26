@@ -1,0 +1,2501 @@
+# MASTER PROJECT SPECIFICATION
+# DESIGN AND BUILD A PREMIUM WINDOWS FILE MANAGER INSPIRED BY GOOGLE FILES FOR ANDROID
+
+## 1. YOUR ROLE, OBJECTIVE, AND LEVEL OF EXPECTATION
+
+Hi Gemini.
+
+I want you to act as a world-class multidisciplinary software development team consisting of:
+
+- A principal Windows desktop application architect.
+- A senior frontend and desktop UI engineer.
+- A professional product designer specialising in premium desktop software.
+- A design-systems architect.
+- A filesystem and storage-engine specialist.
+- A media indexing and search engineer.
+- A Windows integration specialist.
+- A performance optimisation engineer.
+- A software testing and quality assurance engineer.
+
+Your task is to design, engineer, test, and deliver a complete, professional Windows file manager that combines the simplicity and visual elegance of Google Files on Android with the advanced capabilities of a modern Windows desktop file manager.
+
+The application must have its own identity, polished design language, and coherent architecture. It must not look like an ordinary student programming project, a generic administration dashboard, an outdated Windows application, or a collection of unrelated screens.
+
+I want a product that looks deliberately designed by an experienced team.
+
+The quality of the interface matters enormously. Every screen, component, icon, menu, dialog, animation, empty state, thumbnail, navigation element, and interaction must be considered carefully.
+
+However, beautiful visuals alone are insufficient. This must be a real desktop application that can access, index, organise, preview, search, copy, move, rename, and manage actual files on my Windows computer.
+
+**The central product idea is simple: make every file on my computer easier to discover, understand, access, and manage without forcing me to remember where it is stored.**
+
+Use Google Files for Android as the principal reference for effortless file discovery and accessible media categories. Use Windows File Explorer as a reference for desktop navigation, filesystem operations, drives, permissions, and practical file management.
+
+Do not reproduce either product mechanically. Create an original desktop experience that intelligently combines their strongest characteristics.
+
+---
+
+# PART I — PRODUCT VISION AND CORE EXPERIENCE
+
+## 2. THE PROBLEM THIS APPLICATION MUST SOLVE
+
+Files on a computer are often scattered across many locations:
+
+- Downloads.
+- Pictures.
+- Camera folders.
+- Screenshots.
+- Desktop.
+- Documents.
+- Videos.
+- Music.
+- WhatsApp media folders, when present.
+- External storage.
+- USB drives.
+- Custom folders.
+- Other application-created directories.
+
+Finding a particular photograph, video, document, or audio file can require opening several folders and manually inspecting their contents.
+
+I want to eliminate that inconvenience.
+
+The application must provide two complementary ways to interact with files.
+
+### Experience A: Browse by category
+
+I should be able to click Photos and immediately browse the images discovered in all configured locations.
+
+I should also be able to narrow the collection to Screenshots, Camera, Downloads, Recently Added, Favourites, and other meaningful categories.
+
+The same principle applies to videos, music, audio recordings, documents, archives, and other supported file types.
+
+### Experience B: Browse the actual filesystem
+
+I must still be able to navigate real folders, drives, directories, and file paths.
+
+I should be able to create folders, rename files, copy and move items, inspect properties, open files with Windows applications, and reveal their original locations.
+
+### The relationship between these experiences
+
+The category-based libraries must be virtual views of existing files, not separate copies of those files.
+
+For example, a photograph stored in:
+
+`C:\Users\User\Pictures\Screenshots\example.png`
+
+should be discoverable through All Photos, Screenshots, Recent Files, search results, and Favourites if I star it.
+
+These views should reference the same underlying file.
+
+Do not duplicate or relocate the original photograph merely to make it appear in multiple categories.
+
+The application should make this relationship clear and preserve the original filesystem structure unless I explicitly request a change.
+
+---
+
+# PART II — COMPLETE VISUAL DESIGN SYSTEM
+
+## 3. DESIGN DIRECTION
+
+Develop a premium design language called, provisionally, **Modern Files**. You may propose a better product name, but the interface must have a coherent identity.
+
+The desired aesthetic combines:
+
+- The simplicity of Google Files.
+- The refinement of contemporary desktop productivity software.
+- The clarity of a professionally designed Windows application.
+- The visual richness of a premium photo-management application.
+- The precision of a carefully constructed design system.
+
+The overall experience should feel calm, sophisticated, colourful where appropriate, and exceptionally easy to navigate.
+
+Avoid the following design failures:
+
+- Generic admin dashboards.
+- Excessive cards around every element.
+- Excessive gradients.
+- Oversized headings that waste space.
+- Randomly coloured icons.
+- Inconsistent border radii.
+- Thick borders around every panel.
+- Excessive shadows.
+- Unnecessary decorative illustrations.
+- Tiny, difficult-to-read text.
+- Cramped toolbars.
+- Empty space that makes the application feel unfinished.
+- Large empty side panels that reduce the area available for files.
+- Inconsistent spacing between elements.
+- Unnecessary animations.
+- A completely flat interface with no visual hierarchy.
+- A design that looks like a website merely placed inside a desktop window.
+
+Every visual decision must have a purpose.
+
+The application should look attractive at first glance while remaining comfortable to use for hours.
+
+## 4. COLOUR SYSTEM
+
+Create a complete semantic colour system rather than choosing colours independently for individual components.
+
+Use a sophisticated neutral foundation with carefully selected accent colours.
+
+The application should be colourful, but not childish, chaotic, or excessively saturated.
+
+A possible starting direction is:
+
+- Warm off-white surfaces.
+- Soft neutral grey backgrounds.
+- Dark charcoal text.
+- A distinctive green or emerald accent.
+- Carefully balanced coral, amber, teal, and violet accents for meaningful file categories.
+- Muted borders.
+- Subtle, restrained surface elevation.
+
+You may refine these choices to produce a stronger visual identity.
+
+Do not rely on generic blue-purple gradients as a substitute for thoughtful design.
+
+### 4.1 Define actual design tokens
+
+Create centralised theme tokens for:
+
+- Primary background.
+- Secondary background.
+- Main content surface.
+- Elevated surface.
+- Hover surface.
+- Selected surface.
+- Primary text.
+- Secondary text.
+- Tertiary text.
+- Disabled text.
+- Primary accent.
+- Accent hover.
+- Accent pressed.
+- Accent foreground.
+- Borders.
+- Dividers.
+- Focus outlines.
+- Success.
+- Warning.
+- Error.
+- Information.
+- Image category.
+- Video category.
+- Audio category.
+- Document category.
+- Archive category.
+- Application category.
+
+Define the palette in a central theme file.
+
+Use semantic names rather than scattering hard-coded hexadecimal colours throughout the source code.
+
+For every major semantic colour, verify that text, icons, focus indicators, and interactive elements remain legible in both light and dark themes.
+
+### 4.2 Light theme
+
+The light theme should feel bright, refined, and spacious.
+
+Use warm or neutral surfaces instead of making every region pure white.
+
+Differentiate the sidebar, main workspace, floating menus, and selected elements through subtle surface variations.
+
+Selected navigation items should be unmistakable without appearing excessively heavy.
+
+### 4.3 Dark theme
+
+The dark theme must be designed independently rather than produced by simply inverting light-theme colours.
+
+Use deep charcoal and carefully balanced dark surfaces.
+
+Preserve thumbnail clarity, file-type recognition, text readability, and sufficient contrast between the main workspace and secondary regions.
+
+Avoid pure-black backgrounds everywhere.
+
+### 4.4 Accent-colour consistency
+
+Accent colours must have defined meanings.
+
+For example, category colours may distinguish photos, videos, audio, documents, and archives.
+
+However, do not colour every filename or every icon arbitrarily.
+
+Use colour selectively for category markers, meaningful statistics, selected states, and important actions.
+
+### 4.5 Theme persistence
+
+Allow the user to choose:
+
+- Light.
+- Dark.
+- Follow Windows system preference.
+
+Persist the selected theme between application sessions.
+
+Switch themes without restarting the application.
+
+---
+
+## 5. TYPOGRAPHY SYSTEM
+
+Typography must be treated as a core design element.
+
+Use a professional, highly readable typeface that works well on Windows. Consider Segoe UI Variable or another suitable system-compatible family.
+
+Define a consistent typography scale.
+
+Suggested starting values:
+
+| Element | Suggested size |
+|---|---:|
+| Main page heading | 26–30 px |
+| Section heading | 18–21 px |
+| Dialog heading | 18–22 px |
+| File and folder names | 13–15 px |
+| Primary interface text | 13–14 px |
+| Secondary metadata | 11–12 px |
+| Toolbar labels | 12–13 px |
+| Small status information | 11–12 px |
+| Keyboard shortcuts | 11–12 px |
+
+These values are starting points, not rigid requirements. Adjust them to the chosen framework, display scaling, and Windows conventions.
+
+Use a consistent line-height system.
+
+Long filenames must truncate intelligently, with a tooltip or details view providing access to the full name.
+
+Do not make metadata so small that it becomes unreadable.
+
+Use font weight to establish hierarchy. Avoid bolding every label.
+
+Numbers used for storage capacity, file counts, and file sizes should align neatly and be formatted consistently.
+
+---
+
+## 6. SPACING, GRID, AND LAYOUT RULES
+
+Create a formal spacing system based on a consistent scale.
+
+Suggested spacing tokens:
+
+- 4 px: micro-spacing.
+- 8 px: compact spacing.
+- 12 px: standard control spacing.
+- 16 px: standard component spacing.
+- 20 px: section spacing.
+- 24 px: major content spacing.
+- 32 px: large layout spacing.
+- 40–48 px: major section separation.
+
+Do not apply all spacing values indiscriminately. Choose them according to component relationships.
+
+### 6.1 Desktop layout
+
+The application must be designed primarily for desktop use.
+
+The main window should make effective use of available screen space.
+
+Use a three-part layout:
+
+1. Navigation sidebar.
+2. Main workspace.
+3. Optional details or preview panel.
+
+The sidebar should remain compact enough to leave sufficient space for files.
+
+The details panel should be collapsible and should not occupy unnecessary space when unused.
+
+### 6.2 Window-size behaviour
+
+Design and test the interface at these representative sizes:
+
+- 1024 × 768.
+- 1280 × 720.
+- 1366 × 768.
+- 1600 × 900.
+- 1920 × 1080.
+
+Also test Windows display scaling at 100%, 125%, and 150%.
+
+The application must not depend on one fixed screen resolution.
+
+At smaller widths:
+
+- Reduce unnecessary horizontal spacing.
+- Allow the sidebar to collapse.
+- Hide optional metadata columns.
+- Move secondary controls into overflow menus.
+- Preserve access to search and primary navigation.
+- Avoid horizontal clipping.
+
+At larger widths:
+
+- Increase the number of visible thumbnails.
+- Use available space efficiently.
+- Allow optional metadata and preview panels.
+- Avoid stretching content excessively.
+
+Do not solve responsive problems by simply shrinking every element.
+
+---
+
+## 7. ICONOGRAPHY
+
+Use a professional icon library with consistent proportions, stroke weights, and visual language.
+
+Do not draw improvised icons using text characters, emojis, or random Unicode symbols.
+
+Choose one primary icon system, such as Fluent UI System Icons or Lucide, depending on framework compatibility. Use additional icon sets only when there is a clear reason.
+
+The following icons must be visually consistent:
+
+- Home.
+- Photos.
+- Videos.
+- Music.
+- Documents.
+- Downloads.
+- Recent.
+- Favourites.
+- Collections.
+- Drives.
+- Storage.
+- Settings.
+- Search.
+- Filter.
+- Sort.
+- Grid view.
+- List view.
+- Folder.
+- New folder.
+- Copy.
+- Move.
+- Rename.
+- Delete.
+- Restore.
+- Share.
+- Properties.
+- More options.
+- Back.
+- Forward.
+- Up.
+- Refresh.
+- Preview.
+- Close.
+- Minimise.
+- Maximise.
+
+Use appropriate Windows file-type icons when thumbnails are unavailable.
+
+File-type recognition should remain understandable without relying exclusively on colour.
+
+Use consistent icon sizes, generally around 16–20 px for compact controls and 20–24 px for prominent navigation items.
+
+Use larger icons only when they serve a clear purpose, such as empty states or onboarding.
+
+All icons must be genuine assets from the selected icon library or appropriate operating-system resources.
+
+---
+
+# PART III — PIXEL-CONSCIOUS COMPONENT DESIGN
+
+## 8. APPLICATION WINDOW AND TITLE BAR
+
+Create a polished desktop window with a coherent title bar and appropriate Windows integration.
+
+Where the chosen framework permits it, provide a custom-styled title bar while preserving standard Windows window-management behaviour.
+
+Include:
+
+- Application icon.
+- Application name.
+- Window minimise control.
+- Window maximise or restore control.
+- Window close control.
+- Drag-to-move behaviour where supported.
+- Double-click title-bar maximise behaviour where appropriate.
+- Proper resizing.
+- High-DPI support.
+- Correct focus behaviour.
+- Native system menus or equivalent accessible functionality.
+
+If a custom title bar is implemented, ensure that it does not break Windows accessibility, resizing, snapping, or standard window controls.
+
+The title bar should visually integrate with the application rather than appearing like an unrelated component.
+
+Do not remove expected Windows controls merely to imitate a mobile application.
+
+---
+
+## 9. SIDEBAR DESIGN
+
+The sidebar is one of the most important parts of the experience.
+
+It should be immediately understandable, visually balanced, and consistent across every page.
+
+Organise it into clear groups.
+
+### Group A: Main navigation
+
+- Home.
+- Photos.
+- Videos.
+- Music and Audio.
+- Documents.
+- Downloads.
+
+### Group B: Personal collections
+
+- Recent.
+- Favourites.
+- Collections.
+
+### Group C: Locations
+
+- Desktop.
+- Pictures.
+- Videos.
+- Music.
+- Documents.
+- Downloads.
+- Custom pinned folders.
+
+### Group D: Storage and devices
+
+- This PC.
+- Available drives.
+- Removable drives when detected.
+- Storage analysis.
+
+### Group E: Application settings
+
+- Settings.
+- Optional help or application information.
+
+Avoid repeating too many identical destinations unnecessarily. Where a destination appears in more than one context, make its purpose clear.
+
+### 9.1 Sidebar visual states
+
+Every sidebar item must have:
+
+- Default state.
+- Hover state.
+- Selected state.
+- Keyboard-focus state.
+- Disabled state where applicable.
+
+Use a soft selected background, clear icon treatment, and readable label.
+
+Do not rely on a thin colour strip alone to indicate the selected page.
+
+### 9.2 Sidebar behaviour
+
+Support:
+
+- Expandable and collapsible sections.
+- A compact sidebar mode.
+- Tooltips when labels are hidden.
+- Pinned folders.
+- Dragging supported folders into a pinned area.
+- Context menus for eligible locations.
+- Persisted collapse and expansion preferences.
+
+The selected page must update correctly when navigating through the sidebar, breadcrumbs, back and forward buttons, or search results.
+
+### 9.3 Sidebar scrolling
+
+If the list becomes longer than the available height, scroll the sidebar independently of the main workspace.
+
+Do not make the entire application jump or scroll merely because the sidebar contains many folders.
+
+---
+
+## 10. TOP NAVIGATION AND COMMAND BAR
+
+The top navigation must feel carefully engineered.
+
+Include:
+
+- Back button.
+- Forward button.
+- Up-one-level button.
+- Breadcrumb path.
+- Search field.
+- Refresh action where appropriate.
+- View selector.
+- Sorting controls.
+- Filtering controls.
+- Context-sensitive actions.
+- Overflow menu for secondary commands.
+
+Do not place every possible command in the toolbar simultaneously.
+
+Prioritise actions relevant to the current page and selection.
+
+For example, the Photos page may prioritise view options, date filtering, and sorting. A normal folder view may prioritise New Folder, Sort, View, and file operations.
+
+### 10.1 Breadcrumbs
+
+Breadcrumbs must show the user's current filesystem path when navigating real directories.
+
+Each eligible breadcrumb segment should be clickable.
+
+Long paths should be handled gracefully.
+
+For virtual libraries such as All Photos or Favourites, display a meaningful library title rather than pretending that the library is a physical folder.
+
+### 10.2 Search field
+
+Search must be visually prominent without dominating the toolbar.
+
+Provide:
+
+- A search icon.
+- A descriptive placeholder.
+- Clear-search control.
+- Keyboard-focus styling.
+- Search suggestions.
+- Search progress where appropriate.
+- Search filters.
+- A results count when useful.
+
+Search should remain accessible from all major pages.
+
+### 10.3 Toolbar overflow
+
+When the window is narrow, move secondary commands into a well-designed overflow menu instead of allowing controls to overlap or disappear.
+
+---
+
+# PART IV — HOME DASHBOARD
+
+## 11. HOME SCREEN COMPOSITION
+
+The home screen must provide genuine value rather than acting as a decorative landing page.
+
+Its primary purpose is to get the user to the desired file or category quickly.
+
+Use a carefully balanced vertical composition.
+
+### Section 1: Welcome and quick navigation
+
+Display a concise heading such as "Your files, organised."
+
+A short subtitle may explain that files are available across configured locations.
+
+Do not use oversized promotional text.
+
+Immediately below, display a compact set of visually distinct quick-access items for:
+
+- Photos.
+- Videos.
+- Music.
+- Documents.
+- Downloads.
+
+Each item should contain a meaningful icon, a concise label, and optionally a live count when the count is accurate.
+
+Use restrained colour differentiation.
+
+Do not turn the entire dashboard into a grid of giant cards.
+
+### Section 2: Quick Access
+
+Display pinned folders and frequently used locations.
+
+Each item should include:
+
+- Folder icon or appropriate thumbnail.
+- Folder name.
+- Optional file count.
+- Relevant location information.
+- Context menu.
+
+Allow the user to pin and unpin folders.
+
+If there are many pinned items, provide a sensible limit to the initial display and an option to see more.
+
+### Section 3: Recent Files
+
+Display recently accessed or modified files according to a clearly defined and configurable policy.
+
+Include:
+
+- File thumbnail or type icon.
+- Filename.
+- File type.
+- Original folder or location.
+- Last-accessed or modification date, clearly distinguished.
+- File size when appropriate.
+- Context menu.
+
+Provide grid and list views.
+
+Do not claim to know a file's true last-access time if the application cannot reliably obtain it.
+
+Maintain a separate application activity history if required.
+
+### Section 4: Storage overview
+
+Provide a compact visual summary of storage usage.
+
+Include:
+
+- Drive name.
+- Used space.
+- Available space.
+- Total capacity.
+- A segmented or progress-bar visualisation.
+- Link to detailed storage analysis.
+
+Ensure the display uses real measurements.
+
+Do not fill the dashboard with redundant statistics.
+
+### Section 5: Suggested files
+
+If enabled, suggest files based on recent activity or frequently visited locations.
+
+Explain why a suggestion appears when appropriate.
+
+Allow suggestions to be disabled.
+
+Do not upload file names, file contents, or usage histories to an external service.
+
+### Section 6: Indexing status
+
+When a scan is in progress, show a restrained status indicator with:
+
+- Current scan status.
+- Number of files discovered, when available.
+- Locations being processed.
+- Pause or cancel controls where supported.
+- An option to open indexing settings.
+
+Do not block normal file browsing while indexing runs.
+
+### Empty home state
+
+If no locations have been indexed, show a professionally designed onboarding screen with a clear explanation and an action to select folders.
+
+Do not display fabricated file counts or fake recent files.
+
+---
+
+# PART V — THE UNIVERSAL PHOTO LIBRARY
+
+## 12. PHOTOS PAGE: THE MOST IMPORTANT SCREEN
+
+The Photos page is the centrepiece of the application.
+
+It must provide an experience comparable in convenience to Google Files on Android, adapted for a large desktop screen.
+
+All discovered images from configured locations should be accessible in a unified library.
+
+### 12.1 Page header
+
+Display:
+
+- Heading: Photos.
+- A live image count when available.
+- Search or filtering access.
+- Sort control.
+- Grid/list toggle.
+- Selection actions when items are selected.
+- Optional indexing status.
+
+The heading should be prominent but compact.
+
+### 12.2 Photo category navigation
+
+Provide accessible filters or a secondary category-navigation area for:
+
+- All Photos.
+- Camera.
+- Screenshots.
+- Downloads.
+- Recently Added.
+- Favourites.
+- Albums.
+- Other Images.
+
+Where applicable, show detected source folders as additional filters.
+
+These categories should not appear as empty or fake destinations when no matching files exist. Empty categories may be hidden or shown with a clear empty state, depending on the chosen design.
+
+### 12.3 All Photos
+
+Display images from all configured, accessible, indexed locations.
+
+Use a responsive thumbnail grid with consistent spacing and visually balanced proportions.
+
+The grid should adapt to the available width.
+
+Provide:
+
+- Adjustable thumbnail size.
+- A useful default thumbnail size.
+- Optional compact mode.
+- Optional date grouping.
+- Optional filename display.
+- Sorting by date, name, size, and other supported metadata.
+- Filtering by file type, location, and date.
+- Multi-selection.
+- Keyboard navigation.
+- Context menus.
+- Image preview.
+
+Avoid forcing the user into a single rigid grid layout.
+
+### 12.4 Thumbnail treatment
+
+Image thumbnails should be treated as important visual assets.
+
+Requirements:
+
+- Correct aspect-ratio handling.
+- Attractive cropping for gallery presentation.
+- No distortion.
+- Smooth placeholder-to-thumbnail transitions.
+- Lazy loading.
+- Thumbnail caching.
+- Loading indicators when necessary.
+- Fallback icons when a preview cannot be generated.
+- No repeated placeholder image pretending to represent real content.
+
+Allow users to choose whether thumbnails use a uniform crop or preserve the full image.
+
+For photographic browsing, use subtle corner rounding and minimal surrounding decoration.
+
+Do not put every thumbnail inside a heavy bordered card.
+
+Use a consistent selection indicator that remains visible over bright and dark images.
+
+### 12.5 Camera category
+
+The Camera category should identify images stored in recognised camera-related directories or confidently classified through available metadata.
+
+Possible folder names may include Camera and DCIM/Camera where present.
+
+Do not assume every folder named Pictures contains camera photographs.
+
+Do not claim that an image came from a physical camera unless the available folder information or metadata supports that conclusion.
+
+### 12.6 Screenshots category
+
+Identify screenshots through reliable signals such as:
+
+- Recognised Screenshots directory.
+- Relevant file naming patterns.
+- Available metadata where practical.
+
+Provide a configurable option for additional screenshot folders.
+
+Do not misclassify every PNG image as a screenshot.
+
+### 12.7 Downloads category
+
+Display images found in indexed Downloads locations.
+
+The category should remain connected to the original Downloads directory.
+
+Do not physically move files into a central folder.
+
+### 12.8 Recently Added
+
+Provide a chronological view of newly discovered or recently added images.
+
+Clearly define which timestamp is being used.
+
+Prefer reliable creation or modification information where appropriate, and do not imply that the date represents when a photograph was originally taken unless EXIF metadata confirms that.
+
+### 12.9 Albums and collections
+
+Allow the user to create custom virtual albums.
+
+For example:
+
+- University.
+- Family.
+- Wallpapers.
+- Projects.
+- Receipts.
+- Favourite Memories.
+
+Albums should reference original files.
+
+Provide options to add and remove images without moving them.
+
+Where a physical album or folder is explicitly requested, explain whether the action creates a real directory or a virtual collection.
+
+### 12.10 Image viewer
+
+When a photo is opened, provide a dedicated image-viewing experience.
+
+Include:
+
+- Large image display.
+- Zoom in and out.
+- Fit to window.
+- Actual-size viewing.
+- Full-screen mode.
+- Previous and next image navigation.
+- Rotation where supported.
+- Filename.
+- Dimensions.
+- File size.
+- Original location.
+- Relevant metadata.
+- Open-with action.
+- Reveal-in-folder action.
+- Favourite toggle.
+- Context menu.
+
+Image navigation should respect the current collection or search results.
+
+If the user opens an image from Screenshots, Previous and Next should normally move between screenshots rather than jumping to unrelated photos.
+
+### 12.11 Image metadata
+
+Where available, display:
+
+- Width and height.
+- File format.
+- File size.
+- Creation or modification timestamps.
+- EXIF information.
+- Camera model.
+- Date taken.
+- Orientation.
+- Other useful image metadata.
+
+Do not invent missing metadata.
+
+Provide a clear distinction between filesystem timestamps and metadata embedded in the image.
+
+### 12.12 Supported image formats
+
+Support common formats such as:
+
+- JPEG and JPG.
+- PNG.
+- WebP.
+- GIF.
+- BMP.
+- TIFF.
+- HEIC/HEIF where compatible codecs or libraries are available.
+- SVG previews where safely supported.
+
+Animated formats should be handled appropriately.
+
+If a format cannot be previewed, the file should remain discoverable and openable through a compatible external application where available.
+
+---
+
+# PART VI — VIDEO LIBRARY
+
+## 13. VIDEO PAGE
+
+Build a dedicated video library using the same visual design language as Photos.
+
+Provide:
+
+- All Videos.
+- Camera Recordings.
+- Screen Recordings.
+- Downloads.
+- Recently Added.
+- Favourites.
+- Other Videos.
+
+Category assignment should use reliable folder names, file metadata, and configurable rules.
+
+### 13.1 Video thumbnails
+
+Generate actual video thumbnails where supported.
+
+Include an optional duration overlay.
+
+Use readable text over thumbnails with sufficient contrast.
+
+Do not generate every thumbnail synchronously on the main UI thread.
+
+Cache generated thumbnails and provide appropriate fallbacks.
+
+### 13.2 Video metadata
+
+Display:
+
+- Filename.
+- Duration.
+- File size.
+- Resolution.
+- Format.
+- Modification date.
+- Original location.
+
+Extract metadata where possible.
+
+### 13.3 Video player
+
+Provide a video preview experience with:
+
+- Play and pause.
+- Seek bar.
+- Current playback position.
+- Total duration.
+- Volume.
+- Mute.
+- Full-screen playback.
+- Playback speed where supported.
+- Previous and next navigation.
+- Keyboard shortcuts.
+- Open-with option.
+- Reveal-in-folder action.
+
+Use a playback engine that supports a practical range of formats.
+
+Handle unsupported codecs gracefully.
+
+Do not pretend that every codec is supported if the chosen playback engine cannot decode it.
+
+---
+
+# PART VII — MUSIC AND AUDIO LIBRARY
+
+## 14. AUDIO PAGE
+
+Create a professional music and audio browsing experience.
+
+Include:
+
+- All Music.
+- Recently Added.
+- Downloads.
+- Music Folders.
+- Voice Recordings.
+- Favourites.
+- Other Audio.
+
+Support common audio formats, including MP3, WAV, AAC, FLAC, OGG, and other formats compatible with the chosen playback engine.
+
+### 14.1 Audio browsing
+
+Provide both a visual browsing mode and a detailed list view.
+
+Display relevant information:
+
+- Track title.
+- Artist.
+- Album.
+- Duration.
+- File size.
+- Format.
+- Original location.
+- Album artwork when available.
+
+When metadata is missing, fall back to sensible filename-based presentation without fabricating an artist or album.
+
+### 14.2 Mini-player
+
+Create a compact player that can remain available while the user navigates between categories.
+
+Include:
+
+- Track title.
+- Artist when available.
+- Album artwork.
+- Play and pause.
+- Previous and next.
+- Progress.
+- Volume.
+- Queue access.
+- Expanded-player access.
+
+The mini-player must not obscure file content or take up excessive screen space.
+
+### 14.3 Expanded audio player
+
+Provide:
+
+- Larger artwork.
+- Playback progress.
+- Track metadata.
+- Playlist or queue.
+- Repeat and shuffle.
+- Previous and next.
+- Volume.
+- Keyboard shortcuts.
+- Open file location.
+- Favourite control.
+
+Persist playback settings only where appropriate.
+
+### 14.4 Playlists
+
+Allow virtual playlists that reference existing audio files.
+
+Support adding and removing tracks, reordering the queue, and saving playlists locally.
+
+Missing files should be marked clearly rather than silently replaced.
+
+---
+
+# PART VIII — DOCUMENTS AND GENERAL FILE CATEGORIES
+
+## 15. DOCUMENT LIBRARY
+
+Create a dedicated Documents section for supported document types.
+
+Include filters for:
+
+- PDFs.
+- Word-processing documents.
+- Spreadsheets.
+- Presentations.
+- Text files.
+- Other documents.
+
+Recognise common formats such as PDF, DOCX, DOC, XLSX, XLS, PPTX, PPT, TXT, RTF, and CSV where applicable.
+
+Display:
+
+- Filename.
+- File-type icon.
+- Size.
+- Modified date.
+- Original folder.
+- Preview where supported.
+
+PDF files should have document thumbnails or a suitable first-page preview when practical.
+
+Do not attempt to render every file format through an unsafe or unreliable custom viewer.
+
+Use a supported preview mechanism or open the document in its default Windows application.
+
+### 15.1 Additional categories
+
+Create sensible categories for:
+
+- Archives.
+- Applications and installers.
+- Code and development files.
+- Fonts.
+- Other files.
+
+Categorise using file extensions, metadata, and other reliable signals.
+
+Do not execute installers or scripts simply because the user previews them.
+
+---
+
+# PART IX — FULL FILE EXPLORER
+
+## 16. REAL DIRECTORY BROWSING
+
+The application must include a complete filesystem browsing mode.
+
+Support:
+
+- Desktop.
+- Documents.
+- Downloads.
+- Pictures.
+- Videos.
+- Music.
+- User profile directories.
+- Other permitted folders.
+- Internal drives.
+- External drives.
+- USB storage.
+- Network locations where supported.
+
+### 16.1 Folder navigation
+
+Provide:
+
+- Back.
+- Forward.
+- Up.
+- Breadcrumb navigation.
+- Direct path entry.
+- Refresh.
+- New folder.
+- Folder properties.
+- Context menus.
+- Sorting.
+- Filtering.
+- Grid view.
+- List view.
+- Details view.
+
+### 16.2 Multiple tabs
+
+Support multiple folder tabs.
+
+Each tab should retain its own:
+
+- Current path.
+- Scroll position where practical.
+- View mode.
+- Sort settings.
+- Selection where appropriate.
+
+Provide new-tab and close-tab actions.
+
+Prevent accidental loss of important navigation state.
+
+### 16.3 Split-pane browsing
+
+Consider an optional dual-pane mode for users who frequently copy or move files between folders.
+
+Each pane should have independent navigation.
+
+Allow dragging files between panes.
+
+Make the feature optional so it does not complicate the default interface.
+
+### 16.4 File operations
+
+Implement genuine filesystem operations:
+
+- Create folder.
+- Rename.
+- Copy.
+- Cut.
+- Paste.
+- Move.
+- Duplicate.
+- Delete.
+- Restore where supported.
+- Open.
+- Open with.
+- Reveal in folder.
+- Copy path.
+- Copy filename.
+- Properties.
+- Multi-select operations.
+
+Use the correct filesystem APIs and respect permissions.
+
+### 16.5 Operation progress
+
+For large operations, provide a progress interface with:
+
+- Operation type.
+- Source and destination.
+- Number of files processed.
+- Progress percentage where determinable.
+- Current operation status.
+- Cancellation where safe.
+- Error details.
+- Retry options when appropriate.
+
+For operations that cannot be cancelled safely after a particular point, explain the limitation.
+
+### 16.6 File conflicts
+
+When a destination already contains a file with the same name, present clear options:
+
+- Replace.
+- Skip.
+- Rename the incoming file.
+- Apply the chosen rule to subsequent conflicts where appropriate.
+
+Never silently overwrite files.
+
+### 16.7 Deletion
+
+Distinguish between moving a file to the Recycle Bin and permanent deletion.
+
+Permanent deletion should require explicit confirmation.
+
+For multiple files, display the number of affected items.
+
+Never delete files automatically during indexing, cleanup analysis, or duplicate detection.
+
+---
+
+# PART X — SEARCH AND DISCOVERY ENGINE
+
+## 17. UNIVERSAL SEARCH
+
+Search is one of the application's core features.
+
+Build a fast, reliable search system that can locate files across all configured and indexed locations.
+
+Search must work with real filesystem data, not a manually prepared sample list.
+
+### 17.1 Search modes
+
+Support:
+
+- Filename search.
+- Partial filename matching.
+- File-extension search.
+- File-type search.
+- Folder-name search.
+- Path search.
+- Date filtering.
+- File-size filtering.
+- Image metadata search where available.
+- Video metadata search where available.
+- Document search by metadata where available.
+
+Content-based searching inside documents can be added where technically appropriate, but it must be clearly distinguished from filename search.
+
+### 17.2 Search suggestions
+
+As the user types, provide responsive suggestions based on indexed information.
+
+Suggestions may include:
+
+- Matching filenames.
+- Matching folders.
+- Recognised file categories.
+- Recent searches.
+- Suggested filters.
+
+Do not make suggestions interrupt typing or cause the interface to freeze.
+
+### 17.3 Search results
+
+Display results with:
+
+- Thumbnail or file-type icon.
+- Filename.
+- File type.
+- Location.
+- Size.
+- Modified date.
+- Relevant metadata.
+- Context menu.
+
+Highlight matching filename text subtly.
+
+Support sorting and filtering within results.
+
+### 17.4 Search syntax
+
+Where practical, support useful filters such as:
+
+- `type:pdf`
+- `type:image`
+- `type:video`
+- `name:screenshot`
+- `size:large`
+- `after:2026-01-01`
+- `before:2026-12-31`
+
+Define and document the supported syntax.
+
+Handle invalid filters gracefully.
+
+Do not claim to support a filter unless it actually works.
+
+### 17.5 Search performance
+
+Use an indexed search architecture appropriate for the chosen technology.
+
+Do not recursively scan every directory from scratch on every keystroke.
+
+Debounce input appropriately.
+
+Run searches away from the main UI thread.
+
+Cancel obsolete searches when the query changes.
+
+Cache appropriate results.
+
+Clearly indicate when results are incomplete because some locations have not been indexed.
+
+---
+
+# PART XI — INDEXING AND FILE CLASSIFICATION
+
+## 18. INDEXING ENGINE
+
+Build a reliable indexing subsystem.
+
+The indexing engine should:
+
+1. Discover configured directories.
+2. Enumerate accessible files.
+3. Extract basic metadata.
+4. Classify file types.
+5. Generate or schedule thumbnails.
+6. Store indexing metadata locally.
+7. Update library views.
+8. Detect missing files.
+9. Detect filesystem changes.
+10. Support incremental rescanning.
+
+### 18.1 Configurable locations
+
+Provide settings to add, remove, enable, disable, and exclude indexed locations.
+
+Begin with standard user folders where available.
+
+Do not automatically crawl every system directory, protected folder, or drive without user awareness.
+
+### 18.2 File-system change monitoring
+
+Where practical, monitor filesystem changes using suitable Windows APIs.
+
+Handle:
+
+- Newly created files.
+- Renamed files.
+- Moved files.
+- Deleted files.
+- Modified files.
+- Disconnected external drives.
+- Reconnected drives.
+
+If monitoring fails or changes may have been missed, schedule a reconciliation scan.
+
+Do not rely exclusively on file-system event notifications as a perfect source of truth.
+
+### 18.3 Local metadata database
+
+Use an appropriate persistent local database, such as SQLite, where beneficial.
+
+Store only the information needed for fast browsing, searching, categorisation, and application preferences.
+
+Possible indexed fields include:
+
+- Stable internal identifier.
+- Path.
+- Filename.
+- Extension.
+- File category.
+- File size.
+- Creation timestamp.
+- Modification timestamp.
+- Relevant media metadata.
+- Thumbnail reference.
+- Indexed location.
+- Availability status.
+
+Use transactions, indexes, migrations, and sensible error handling.
+
+Do not store full file contents unless a separately justified feature requires it.
+
+### 18.4 Stale records
+
+A file may be moved or deleted outside the application.
+
+The system must detect stale records and reconcile them with the filesystem.
+
+Do not continue displaying deleted files as if they were available.
+
+If a file becomes temporarily inaccessible because a removable drive is disconnected, distinguish that situation from confirmed deletion.
+
+### 18.5 File identity
+
+Avoid using filename alone as a unique identifier.
+
+Two files with the same name may exist in different directories.
+
+Use appropriate path and metadata tracking, with reliable reconciliation when files are moved or renamed.
+
+### 18.6 Virtual libraries
+
+The Photos, Videos, Music, Documents, Recent, Favourites, and Collections views should query indexed metadata and reference actual files.
+
+Do not create duplicate copies of media to populate the libraries.
+
+---
+
+# PART XII — STORAGE ANALYSIS
+
+## 19. STORAGE DASHBOARD
+
+Create a storage analysis experience that is useful, accurate, and visually refined.
+
+Include:
+
+- Drive overview.
+- Capacity.
+- Used space.
+- Available space.
+- File-category distribution.
+- Largest files.
+- Largest folders.
+- Recently downloaded files.
+- Duplicate-file candidates.
+- Temporary-file candidates.
+- Optional folder-size visualisation.
+
+### 19.1 Storage visualisation
+
+Use clean, legible charts or segmented bars.
+
+Provide clear legends and readable values.
+
+Ensure that each colour has a defined category meaning.
+
+Do not add charts merely for decoration.
+
+### 19.2 Large-file discovery
+
+Allow sorting and filtering by size.
+
+Provide useful size thresholds and custom ranges.
+
+Opening a result should reveal its original location.
+
+### 19.3 Duplicate detection
+
+Identify probable duplicates using reliable comparison methods.
+
+Use filename, file size, and file hashes appropriately.
+
+Do not assume that two files are duplicates merely because their names match.
+
+Where full hashing is expensive, use a staged process to reduce unnecessary work.
+
+Display:
+
+- Candidate group.
+- File paths.
+- Sizes.
+- Comparison status.
+- Reason for the match.
+- Potential reclaimable space.
+
+Do not automatically select or delete files.
+
+### 19.4 Safe cleanup
+
+Cleanup suggestions must be conservative.
+
+Do not recommend deleting essential operating-system files merely because they are large or old.
+
+Do not automatically delete temporary files, duplicates, empty folders, or downloaded files.
+
+Require user review and confirmation.
+
+---
+
+# PART XIII — CONTEXT MENUS AND INTERACTIONS
+
+## 20. CONTEXT MENUS
+
+Create a consistent context-menu system for files, folders, thumbnails, navigation items, tabs, and blank workspace areas.
+
+Menu items must be context-sensitive.
+
+For a selected file, appropriate actions may include:
+
+- Open.
+- Open with.
+- Cut.
+- Copy.
+- Rename.
+- Delete.
+- Add to Favourites.
+- Add to Collection.
+- Copy path.
+- Properties.
+- Reveal in folder.
+
+For folders:
+
+- Open.
+- Open in new tab.
+- Open in new window where supported.
+- Pin or unpin.
+- Rename.
+- Copy.
+- Move.
+- Delete.
+- Properties.
+
+For blank workspace areas:
+
+- New folder.
+- Refresh.
+- Sort.
+- View options.
+- Paste when clipboard content permits it.
+
+Do not show unavailable actions as though they are functional.
+
+### 20.1 Hover behaviour
+
+Use subtle hover states for:
+
+- Sidebar items.
+- Toolbar buttons.
+- File thumbnails.
+- List rows.
+- Tabs.
+- Context-menu items.
+
+Hover feedback should be immediate but not distracting.
+
+### 20.2 Selection behaviour
+
+Support:
+
+- Single selection.
+- Ctrl-based multi-selection.
+- Shift-based range selection where appropriate.
+- Select all.
+- Clear selection.
+- Keyboard navigation.
+- Visible selection indicators.
+
+Selected files should have a clear background or outline that remains visible across thumbnail colours and both themes.
+
+### 20.3 Tooltips
+
+Provide concise tooltips for icon-only controls.
+
+Include keyboard shortcuts where useful.
+
+Avoid tooltips that cover the element the user is trying to click.
+
+### 20.4 Notifications
+
+Use restrained notifications for successful operations and recoverable errors.
+
+Examples include:
+
+- File copied.
+- Folder created.
+- Rename completed.
+- Scan paused.
+- Indexing completed.
+
+Do not display an intrusive popup for every minor action.
+
+Notifications must reflect actual operation results.
+
+---
+
+# PART XIV — ANIMATION AND MICRO-INTERACTIONS
+
+## 21. MOTION DESIGN
+
+Use animation to make the interface feel responsive and polished.
+
+Do not use motion merely to demonstrate that animation is possible.
+
+Appropriate examples include:
+
+- Subtle thumbnail appearance transitions.
+- Smooth sidebar collapse and expansion.
+- Gentle hover transitions.
+- Selection feedback.
+- Small opacity transitions for menus.
+- Smooth changes between view modes.
+- Progress indicators.
+- Refined dialog appearance.
+- Animated loading placeholders when appropriate.
+
+### 21.1 Motion timings
+
+Use a consistent timing system.
+
+Suggested starting values:
+
+- Small hover transition: 100–150 ms.
+- Standard control transition: 150–200 ms.
+- Menu transition: 120–180 ms.
+- Larger panel transition: 180–250 ms.
+
+Keep motion responsive and restrained.
+
+Avoid excessive bouncing, elastic movement, spinning decorations, or long transitions that slow down routine work.
+
+### 21.2 Reduced motion
+
+Where practical, respect Windows accessibility preferences and offer a reduced-motion setting.
+
+Ensure that every animation can be removed without making the application difficult to use.
+
+---
+
+# PART XV — EMPTY STATES, LOADING STATES, AND ERRORS
+
+## 22. DESIGN EVERY APPLICATION STATE
+
+Do not design only the ideal state in which every folder contains files.
+
+Every major screen must have carefully designed alternative states.
+
+### Empty states
+
+Examples:
+
+- No photos found.
+- No videos found.
+- No audio files found.
+- No recent files.
+- No favourites.
+- No collections.
+- No search results.
+- No indexed locations.
+- No files in this folder.
+
+Each empty state should explain the situation and, where useful, provide an appropriate next action.
+
+Use simple illustrations or icon compositions only where they improve understanding.
+
+Do not use generic oversized artwork on every page.
+
+### Loading states
+
+Provide appropriate loading indicators for:
+
+- Initial indexing.
+- Thumbnail generation.
+- Large directory enumeration.
+- Search.
+- Video metadata extraction.
+- Storage analysis.
+
+Do not freeze the entire interface during lengthy operations.
+
+### Error states
+
+Handle:
+
+- Permission denied.
+- Missing files.
+- Corrupted media.
+- Unsupported formats.
+- Disconnected drives.
+- Invalid paths.
+- Failed copy operations.
+- Failed move operations.
+- Database errors.
+- Interrupted indexing.
+
+Error messages must explain what happened in plain language and offer a useful next step.
+
+Provide technical details when useful, but do not expose raw stack traces as the main user-facing message.
+
+---
+
+# PART XVI — ADVANCED SETTINGS AND PERSONALISATION
+
+## 23. SETTINGS EXPERIENCE
+
+Create a professionally designed settings area with a clear sidebar or category navigation.
+
+Include the following groups.
+
+### Appearance
+
+- Light theme.
+- Dark theme.
+- Follow Windows theme.
+- Accent colour.
+- Thumbnail size.
+- Default view mode.
+- Density settings.
+- Sidebar preferences.
+- Reduced motion.
+
+### File indexing
+
+- Indexed locations.
+- Add location.
+- Remove location.
+- Excluded directories.
+- Scan status.
+- Manual rescan.
+- Pause or resume indexing.
+- Thumbnail cache controls.
+- Index database information where useful.
+
+### Search
+
+- Search scope.
+- Default filters.
+- Recent search history.
+- Search history clearing.
+- Filename matching preferences.
+- Supported content-search options.
+
+### File management
+
+- Default opening behaviour.
+- Confirmation settings.
+- File extension visibility.
+- Hidden-file visibility.
+- Default sorting.
+- Default folder view.
+- Conflict-handling preferences.
+
+Safety-critical confirmations must not be silently disabled by a general preference.
+
+### Privacy
+
+- Local indexing explanation.
+- Local database location where appropriate.
+- Cache management.
+- Clear application history.
+- Clear recent searches.
+- Reset preferences.
+
+### Storage
+
+- Drive overview.
+- Storage scan settings.
+- Duplicate-detection settings.
+- Large-file thresholds.
+- Exclusion rules.
+
+### About
+
+- Application name.
+- Version.
+- Build information.
+- Dependencies or licences where appropriate.
+- Diagnostics export, if implemented.
+
+Settings should be saved persistently and validated before being applied.
+
+---
+
+# PART XVII — TECHNICAL ARCHITECTURE
+
+## 24. CHOOSE THE RIGHT TECHNOLOGY
+
+Before implementing the application, evaluate the available desktop technologies and choose the most suitable one for the requirements.
+
+Prioritise:
+
+- Excellent Windows integration.
+- A high-quality interface.
+- Reliable filesystem access.
+- Responsive background processing.
+- Efficient indexing.
+- Media preview support.
+- Good packaging and deployment.
+- Long-term maintainability.
+
+Possible approaches include:
+
+- C# with WinUI 3 or WPF.
+- Java with JavaFX.
+- Another well-supported Windows desktop framework if it provides a demonstrably better overall solution.
+
+Choose one primary stack and commit to it.
+
+Do not mix multiple UI frameworks unnecessarily.
+
+If you choose Java, consider a modern Java LTS release with JavaFX and an appropriate local database.
+
+If you choose C#, consider the balance between Windows-native integration, modern controls, filesystem APIs, and deployment complexity.
+
+Explain the choice briefly, then proceed to implementation.
+
+Do not spend the entire response comparing technologies instead of building the application.
+
+### 24.1 Architectural separation
+
+Separate the application into clear modules.
+
+Suggested logical components:
+
+1. Application shell.
+2. Design system and reusable controls.
+3. Navigation and routing.
+4. Filesystem abstraction.
+5. File operations service.
+6. Indexing engine.
+7. Local metadata database.
+8. Search engine.
+9. Media classification service.
+10. Thumbnail generation service.
+11. Image preview service.
+12. Video playback service.
+13. Audio playback service.
+14. Storage analysis service.
+15. Favourites and collections.
+16. Settings and preferences.
+17. Background task coordinator.
+18. Error reporting and logging.
+19. Packaging and update-related infrastructure where needed.
+
+These are logical boundaries, not a requirement to create an excessive number of tiny files.
+
+Use a clean architecture appropriate to the chosen framework.
+
+### 24.2 Threading
+
+All expensive filesystem enumeration, hashing, metadata extraction, and thumbnail generation must be performed away from the main UI thread.
+
+Use suitable concurrency limits.
+
+Avoid exhausting memory by loading thousands of full-resolution images at once.
+
+Implement cancellation and backpressure where appropriate.
+
+### 24.3 Resource management
+
+Dispose of file handles, image resources, database connections, and media-player resources correctly.
+
+Avoid retaining thumbnails or decoded media unnecessarily.
+
+Do not leak resources when changing tabs, closing previews, or navigating between libraries.
+
+### 24.4 Persistence
+
+Persist the appropriate information:
+
+- Preferences.
+- Indexed metadata.
+- Favourites.
+- Virtual collections.
+- Saved searches if implemented.
+- Recent application activity.
+- Window and layout preferences.
+
+Use schema versioning and safe database migration.
+
+The application must recover gracefully from an interrupted update or a corrupted cache.
+
+---
+
+# PART XVIII — SECURITY, PRIVACY, AND DATA INTEGRITY
+
+## 25. SAFETY REQUIREMENTS
+
+Treat the user's files as valuable data.
+
+The application must:
+
+- Work locally by default.
+- Avoid uploading file information externally.
+- Request only necessary permissions.
+- Avoid unnecessary administrator privileges.
+- Respect Windows access controls.
+- Preserve original files during indexing.
+- Avoid following symbolic links or junctions in ways that create recursive traversal loops.
+- Detect filesystem traversal cycles where applicable.
+- Handle locked files gracefully.
+- Avoid unsafe execution of discovered files.
+- Avoid silent overwrites.
+- Confirm permanent deletion.
+- Protect database integrity.
+- Avoid destructive automatic cleanup.
+- Keep diagnostic logs free of unnecessary private file contents.
+
+Provide clear explanations before performing operations with substantial consequences.
+
+Where a file operation partially succeeds, report exactly which items succeeded and which failed.
+
+Do not report complete success if some operations failed.
+
+---
+
+# PART XIX — PERFORMANCE REQUIREMENTS
+
+## 26. PERFORMANCE TARGETS
+
+The application should feel fast during ordinary use.
+
+Use the following as initial engineering targets, measured on representative hardware rather than treated as unconditional guarantees.
+
+- Initial window rendering should normally occur within approximately 2 seconds on a typical supported computer.
+- Ordinary navigation should feel immediate.
+- Cached searches over a moderate indexed library should generally complete within a few hundred milliseconds.
+- Typing into search should not block the interface.
+- Thumbnail grids should load progressively.
+- Large directory listings should use incremental loading or virtualisation where appropriate.
+- Indexing should not prevent navigation.
+- Memory consumption should remain controlled when thousands of images are indexed.
+- Idle CPU consumption should be low.
+- Scanning should yield resources when the system is under pressure.
+
+Define realistic performance tests and record the results.
+
+Do not claim a performance target has been met unless it has been measured.
+
+### 26.1 Virtualisation
+
+Use UI virtualisation for large collections.
+
+Do not create a separate fully realised UI component for every file in a collection of tens of thousands of items.
+
+### 26.2 Thumbnail cache
+
+Use a persistent thumbnail cache with sensible size limits.
+
+Cache keys should account for file identity and changes.
+
+Invalidate thumbnails when relevant file content changes.
+
+Allow the cache to be rebuilt without losing the underlying files or user collections.
+
+### 26.3 Indexing efficiency
+
+Use incremental scans and appropriate filesystem monitoring.
+
+Do not hash every file repeatedly without justification.
+
+Do not regenerate thumbnails unnecessarily.
+
+Expose progress without flooding the UI with updates.
+
+---
+
+# PART XX — ACCESSIBILITY AND KEYBOARD SUPPORT
+
+## 27. ACCESSIBILITY
+
+A professional file manager must work beyond mouse-only interaction.
+
+Implement:
+
+- Keyboard navigation.
+- Visible keyboard focus.
+- Accessible control names.
+- Logical tab order.
+- Screen-reader-friendly labels where supported.
+- Sufficient contrast.
+- Readable scaling.
+- Reduced-motion support.
+- Accessible dialogs.
+- Clear focus restoration after closing menus and dialogs.
+
+Support practical keyboard shortcuts, including:
+
+- Ctrl+C: Copy.
+- Ctrl+X: Cut.
+- Ctrl+V: Paste.
+- Ctrl+A: Select all.
+- Ctrl+F: Focus search.
+- Ctrl+N: New window or the framework-appropriate new-window action.
+- Ctrl+Shift+N: New folder where appropriate.
+- F2: Rename.
+- Delete: Move to Recycle Bin where supported.
+- Alt+Left: Back.
+- Alt+Right: Forward.
+- Alt+Up: Up one level.
+- F5: Refresh.
+- Ctrl+Tab: Next tab.
+- Ctrl+Shift+Tab: Previous tab.
+- Escape: Close the current menu or cancel a cancellable operation.
+- Enter: Open the selected item.
+
+Avoid conflicting shortcuts or intercepting standard Windows behaviour unnecessarily.
+
+Provide a shortcut reference in the application.
+
+---
+
+# PART XXI — REQUIRED SCREEN-BY-SCREEN IMPLEMENTATION
+
+## 28. BUILD THE FOLLOWING SCREENS
+
+Do not stop after building the dashboard.
+
+Implement and connect all the following screens.
+
+### Screen 1: Home
+
+- Quick-access categories.
+- Pinned folders.
+- Recent files.
+- Storage summary.
+- Indexing status.
+- Useful empty state.
+
+### Screen 2: Photos
+
+- All Photos.
+- Camera.
+- Screenshots.
+- Downloads.
+- Recently Added.
+- Favourites.
+- Albums.
+- Responsive image grid.
+- Sorting and filtering.
+- Multi-selection.
+- Image viewer.
+
+### Screen 3: Videos
+
+- Video categories.
+- Actual thumbnails.
+- Duration and resolution.
+- Sorting and filtering.
+- Video preview and playback.
+
+### Screen 4: Music and Audio
+
+- Audio categories.
+- Metadata-aware list.
+- Album artwork.
+- Mini-player.
+- Expanded player.
+- Queue and playlists.
+
+### Screen 5: Documents
+
+- Document categories.
+- File-type icons.
+- Preview support.
+- Sorting and filtering.
+- Original-location access.
+
+### Screen 6: File Explorer
+
+- Real filesystem navigation.
+- Breadcrumbs.
+- Tabs.
+- Folder operations.
+- File operations.
+- Grid, list, and details views.
+- Context menus.
+
+### Screen 7: Search
+
+- Live suggestions.
+- Filters.
+- Results.
+- Search history.
+- Clear search.
+- Original-location navigation.
+
+### Screen 8: Favourites
+
+- Starred files and folders.
+- Sorting.
+- Filtering.
+- Remove-from-favourites action.
+- Open and reveal original location.
+
+### Screen 9: Collections
+
+- Create collection.
+- Rename collection.
+- Add and remove files.
+- Delete collection without deleting original files.
+- Persistent collection membership.
+
+### Screen 10: Storage
+
+- Drive usage.
+- Category breakdown.
+- Largest files.
+- Large folders.
+- Duplicate candidates.
+- Safe cleanup review.
+
+### Screen 11: File details and preview
+
+- Preview.
+- Filename.
+- File type.
+- Size.
+- Timestamps.
+- Original location.
+- Relevant metadata.
+- Available actions.
+
+### Screen 12: Settings
+
+- Appearance.
+- Indexing.
+- Search.
+- File management.
+- Privacy.
+- Storage.
+- About.
+
+### Screen 13: Operation progress
+
+- Copy.
+- Move.
+- Delete.
+- Scan.
+- Indexing.
+- Thumbnail generation.
+- Cancellation where supported.
+- Error recovery.
+
+Every screen must share the same design system and behave as part of one application.
+
+---
+
+# PART XXII — REQUIRED DELIVERABLES
+
+## 29. DELIVER A REAL PROJECT
+
+I do not want only a plan, a design description, a screenshot, or a static HTML mockup.
+
+I want the actual implementation.
+
+Deliver:
+
+1. A complete source-code project.
+2. All essential source files.
+3. The complete UI implementation.
+4. The filesystem integration.
+5. The indexing and search implementation.
+6. The media-library implementation.
+7. The file-operation implementation.
+8. The database schema and migrations if applicable.
+9. Configuration and resource files.
+10. Required icons and assets, with appropriate licences.
+11. Build configuration.
+12. Dependency information.
+13. Automated tests where appropriate.
+14. A README with setup instructions.
+15. Instructions for running the application.
+16. Instructions for building a distributable Windows package.
+17. An installer or executable if the environment supports building one.
+18. Known limitations and any unfinished features.
+
+Do not provide code that references files or libraries that you have not included or explained.
+
+Do not invent successful build results.
+
+If your environment can create project files, create them directly.
+
+If your environment can execute commands, use it to build and test the project.
+
+If you cannot execute the project, explain that limitation clearly and provide the most complete implementation possible.
+
+---
+
+# PART XXIII — TESTING AND ACCEPTANCE CRITERIA
+
+## 30. FUNCTIONAL TESTS
+
+The application must be tested against actual files.
+
+At a minimum, verify the following scenarios.
+
+### Test A: Unified photos
+
+Place images in at least three separate test directories.
+
+Verify that all images appear in All Photos without being physically moved.
+
+### Test B: Screenshot categorisation
+
+Add screenshots to a recognised screenshot directory.
+
+Verify that eligible files appear in Screenshots and remain accessible through All Photos.
+
+### Test C: Original-location integrity
+
+Open a photo through the virtual library.
+
+Reveal its original location.
+
+Verify that the file remains at its original path unless an explicit move or rename has occurred.
+
+### Test D: Duplicate appearances
+
+Star an image.
+
+Verify that it appears in Favourites and All Photos without creating another physical file.
+
+### Test E: Search
+
+Search for a known filename.
+
+Verify that the correct result appears and that its original location can be opened.
+
+### Test F: File operations
+
+Create, rename, copy, move, and delete test files.
+
+Verify the resulting filesystem state.
+
+### Test G: File conflicts
+
+Copy a file into a directory containing a file with the same name.
+
+Verify that the application presents the appropriate conflict options.
+
+### Test H: External drive
+
+Disconnect or simulate the unavailability of an indexed removable drive.
+
+Verify that the application handles the condition without crashing or falsely treating every file on that drive as permanently deleted.
+
+### Test I: Large collection
+
+Test with a realistically large library.
+
+Verify that thumbnail loading and scrolling remain responsive.
+
+### Test J: Theme switching
+
+Switch between light, dark, and system themes.
+
+Verify that all major screens, menus, dialogs, icons, text, and selection states remain readable.
+
+### Test K: Window resizing
+
+Resize the application to the target dimensions.
+
+Verify that controls do not overlap, disappear, or become unusable.
+
+### Test L: Database recovery
+
+Simulate interrupted indexing or a recoverable database error.
+
+Verify that the application can reopen and reconcile its data without damaging original files.
+
+---
+
+## 31. DESIGN ACCEPTANCE TESTS
+
+Before declaring the design complete, inspect every major screen.
+
+Check that:
+
+- Typography follows the defined scale.
+- Spacing is consistent.
+- Sidebar items align correctly.
+- Toolbar controls have consistent dimensions.
+- Icons use a coherent visual style.
+- File thumbnails are not distorted.
+- Empty states look intentional.
+- Dialogs use consistent styling.
+- Context menus align with the rest of the application.
+- Light and dark themes both look professionally designed.
+- Selection states are unmistakable.
+- Focus indicators are visible.
+- The interface uses screen space efficiently.
+- No text is clipped.
+- No controls overlap.
+- No major screen is visually unfinished.
+- No decorative control falsely implies functionality.
+
+If screenshots or a running application are available, inspect them and correct the actual problems. Do not merely claim that the design has been reviewed.
+
+---
+
+# PART XXIV — IMPLEMENTATION DISCIPLINE
+
+## 32. DO NOT CUT CORNERS
+
+Follow these rules throughout development.
+
+**Rule 1: Do not stop at a prototype.**
+
+A beautiful home screen is not a completed file manager.
+
+**Rule 2: Do not substitute sample data for real files.**
+
+Use real filesystem data in the finished application.
+
+**Rule 3: Do not create fake functionality.**
+
+Every button and menu item must work or be clearly marked as unavailable during development.
+
+**Rule 4: Do not sacrifice design quality.**
+
+The interface must remain polished after real functionality is connected.
+
+**Rule 5: Do not sacrifice reliability.**
+
+Never perform risky file operations without appropriate safeguards.
+
+**Rule 6: Do not leave core screens unfinished.**
+
+Prioritise complete vertical slices of functionality rather than dozens of disconnected mockups.
+
+**Rule 7: Do not duplicate files unnecessarily.**
+
+Use virtual libraries and metadata references.
+
+**Rule 8: Do not overcomplicate the interface.**
+
+Advanced features should remain accessible without cluttering the default experience.
+
+**Rule 9: Do not claim tests passed without running them.**
+
+Distinguish implemented, tested, partially implemented, and unimplemented functionality.
+
+**Rule 10: Do not abandon the project because it is large.**
+
+Divide the implementation into manageable stages and continue until a coherent, runnable application exists.
+
+**Rule 11: Maintain consistency.**
+
+Use shared components, shared design tokens, centralised theme definitions, and a clear navigation architecture.
+
+**Rule 12: Make engineering decisions deliberately.**
+
+Explain important trade-offs briefly and then implement the chosen solution.
+
+---
+
+# PART XXV — DEVELOPMENT PLAN
+
+## 33. BUILD IN CONTROLLED PHASES
+
+Use the following development sequence.
+
+### Phase 1: Technical foundation
+
+- Select the technology stack.
+- Establish the project structure.
+- Implement the application shell.
+- Establish theme tokens.
+- Implement navigation.
+- Build reusable controls.
+- Configure logging and error handling.
+
+### Phase 2: Visual foundation
+
+- Implement the title bar.
+- Build the sidebar.
+- Build the command bar.
+- Implement the home dashboard.
+- Establish the grid and list components.
+- Build reusable thumbnail components.
+- Implement dialogs, menus, and tooltips.
+- Complete the light and dark themes.
+
+### Phase 3: Filesystem integration
+
+- Implement directory navigation.
+- Implement file enumeration.
+- Implement file properties.
+- Implement file operations.
+- Implement conflict handling.
+- Add multi-selection.
+- Add keyboard shortcuts.
+
+### Phase 4: Indexing and search
+
+- Implement the local database.
+- Implement indexing.
+- Implement incremental updates.
+- Implement classification.
+- Implement thumbnail caching.
+- Implement search.
+- Implement indexing settings.
+
+### Phase 5: Media libraries
+
+- Complete Photos.
+- Complete Screenshots and Camera classification.
+- Complete image previews.
+- Complete Videos and playback.
+- Complete Music and Audio.
+- Complete Documents.
+
+### Phase 6: Advanced features
+
+- Favourites.
+- Collections.
+- Recent activity.
+- Storage analysis.
+- Duplicate detection.
+- Large-file discovery.
+- Multiple tabs.
+- Optional split-pane navigation.
+
+### Phase 7: Hardening
+
+- Accessibility.
+- Performance testing.
+- Error recovery.
+- Database migration.
+- Privacy checks.
+- High-DPI testing.
+- Light/dark theme verification.
+- Automated tests.
+
+### Phase 8: Packaging
+
+- Build the application.
+- Test the packaged version.
+- Document installation.
+- Produce a distributable package where supported.
+- Document known limitations.
+
+At the end of each phase, state what was implemented, what was tested, and what remains.
+
+Preserve the architecture and naming conventions across phases. Do not restart the project with an unrelated implementation every time the response limit is reached.
+
+---
+
+# PART XXVI — FIRST RESPONSE AND EXECUTION INSTRUCTIONS
+
+## 34. BEGIN BUILDING, NOT JUST DESCRIBING
+
+Start by evaluating the technical stack and establishing the project's architecture.
+
+Then create the actual project structure and implement the application shell.
+
+The first working milestone must contain:
+
+1. A properly styled Windows application window.
+2. A polished title bar.
+3. A complete navigation sidebar.
+4. A functional command bar.
+5. A professionally designed home screen.
+6. Working navigation between the main sections.
+7. Light and dark themes.
+8. Reusable file and folder components.
+9. A basic real filesystem browser.
+10. A functioning search field connected to actual indexed or browsable data, according to the implemented stage.
+
+After that milestone, continue implementing the indexing engine and the unified media libraries.
+
+Do not spend the entire response explaining what you intend to do.
+
+If you have access to a development environment, create the files, run the application, inspect the result, and fix problems.
+
+If you must work through generated source code in responses, maintain a clear project tree, provide complete files rather than unexplained fragments, and identify exactly where each file belongs.
+
+When the project becomes too large for one response, continue in numbered stages without discarding previous work.
+
+## 35. FINAL PRODUCT STANDARD
+
+The finished application should feel like a serious, premium Windows product.
+
+When I open it, I should immediately understand where to find my files.
+
+When I click Photos, I should see images from all configured locations.
+
+When I click Screenshots, I should see the relevant screenshots.
+
+When I click Videos, I should be able to browse and preview actual videos.
+
+When I click Music, I should be able to browse and play actual audio files.
+
+When I search, I should find real files and see where they are stored.
+
+When I use the file manager, I should be able to perform ordinary Windows file-management tasks reliably.
+
+When I change the theme, the entire application should remain coherent.
+
+When I resize the window, the interface should adapt intelligently.
+
+When an error occurs, the application should explain it rather than crash or silently lose information.
+
+When I close and reopen the application, my settings, favourites, collections, and index should persist appropriately.
+
+Above all, the application should reduce the effort required to find and manage files.
+
+The final product must combine:
+
+- The accessibility and discoverability of Google Files.
+- The functionality of a capable Windows file manager.
+- The visual refinement of premium desktop software.
+- The performance of a properly engineered indexing application.
+- The safety and reliability expected of software that handles personal files.
+
+**My highest priority is a beautiful, unified file-discovery experience with a genuinely excellent design. Do not treat the visual design as a secondary task to be completed after the code. Design quality, usability, functionality, and engineering reliability must develop together.**
+
+Now begin the project, implement the actual application, and continue until you have delivered the most complete, polished, and reliable working version that your available development environment permits.

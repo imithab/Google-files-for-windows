@@ -1,0 +1,8 @@
+{
+  "name": "Files Studio - Modern Windows File Manager",
+  "description": "A premium Windows desktop file manager inspired by Google Files and Google Design, combining unified media discovery with advanced filesystem management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
