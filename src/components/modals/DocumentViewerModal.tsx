@@ -77,13 +77,47 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSearching]);
 
-  if (!currentDocument) return null;
-
-  const ext = currentDocument.extension.toLowerCase();
+  const ext = currentDocument?.extension?.toLowerCase() || '';
   const isMarkdown = ['md', 'markdown'].includes(ext);
   const isCsv = ['csv', 'tsv'].includes(ext);
-  const isCode = ['js', 'ts', 'tsx', 'jsx', 'json', 'html', 'css', 'py', 'sql', 'sh', 'yaml', 'yml'].includes(ext);
+  const isCode = ['js', 'ts', 'tsx', 'jsx', 'json', 'html', 'css', 'py', 'sql', 'sh', 'yaml', 'yml', 'cpp', 'cc', 'c', 'h', 'hpp', 'java', 'go', 'rs'].includes(ext);
   const isPdf = ext === 'pdf';
+
+  // Google Core Language Domain Info
+  const googleLanguageInfo: Record<string, { label: string; domain: string; color: string; icon: string }> = {
+    cpp: {
+      label: 'C++20 (Google Core)',
+      domain: 'Used for performance-critical systems, core search algorithms, Google File System (GFS/Colossus), and execution speed.',
+      color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900',
+      icon: 'memory'
+    },
+    cc: {
+      label: 'C++20 (Google Core)',
+      domain: 'Used for performance-critical systems, core search algorithms, Google File System, and execution speed.',
+      color: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900',
+      icon: 'memory'
+    },
+    java: {
+      label: 'Java 21 (Enterprise & Android)',
+      domain: 'Heavily utilized for enterprise systems, backend networking, and foundational Android systems.',
+      color: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900',
+      icon: 'coffee'
+    },
+    py: {
+      label: 'Python 3.12 (ML & Tooling)',
+      domain: 'The preferred language for data science, machine learning models, automation scripts, and rapid backend tooling.',
+      color: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900',
+      icon: 'terminal'
+    },
+    go: {
+      label: 'Go / Golang (Google Cloud)',
+      domain: 'Developed internally by Google to solve scalability issues, Go is extensively used across Google Cloud services and modern backend microservices.',
+      color: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-900',
+      icon: 'cloud_sync'
+    }
+  };
+
+  const currentLangSpec = googleLanguageInfo[ext];
 
   const lines = content.split('\n');
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
@@ -92,6 +126,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
 
   // Outline / Headings extraction
   const outline = React.useMemo(() => {
+    if (!currentDocument) return [];
     const matches: { text: string; level: number; line: number }[] = [];
     lines.forEach((l, idx) => {
       const match = l.match(/^(#{1,4})\s+(.+)/);
@@ -104,18 +139,20 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
       }
     });
     return matches;
-  }, [lines]);
+  }, [lines, currentDocument]);
 
   // Search matches
   const matchPositions = React.useMemo(() => {
-    if (!searchQuery.trim()) return [];
+    if (!currentDocument || !searchQuery.trim()) return [];
     const q = searchQuery.toLowerCase();
     const positions: number[] = [];
     lines.forEach((l, i) => {
       if (l.toLowerCase().includes(q)) positions.push(i);
     });
     return positions;
-  }, [lines, searchQuery]);
+  }, [lines, searchQuery, currentDocument]);
+
+  if (!currentDocument) return null;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -440,29 +477,53 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
             ) : isMarkdown && viewTab === 'rendered' ? (
               renderFormattedMarkdown(content)
             ) : (
-              /* Code or Plain Text View with Line Numbers */
-              <div className="max-w-4xl mx-auto flex font-mono text-xs leading-relaxed">
-                <div className="select-none text-neutral-400 dark:text-neutral-600 text-right pr-4 border-r border-neutral-200 dark:border-neutral-800 py-1">
-                  {lines.map((_, i) => (
-                    <div key={i} className="h-5">
-                      {i + 1}
+              /* Code or Plain Text View with Line Numbers & Syntax Highlighting */
+              <div className="max-w-4xl mx-auto">
+                {currentLangSpec && (
+                  <div className={`mb-5 p-4 rounded-2xl border flex items-start gap-3.5 shadow-2xs font-sans ${currentLangSpec.color}`}>
+                    <div className="w-9 h-9 rounded-xl bg-white/70 dark:bg-black/30 flex items-center justify-center shrink-0 shadow-2xs">
+                      <MaterialIcon name={currentLangSpec.icon} size={20} />
                     </div>
-                  ))}
-                </div>
-                <div className="pl-4 py-1 flex-1 overflow-x-auto text-neutral-800 dark:text-neutral-200">
-                  {lines.map((line, i) => {
-                    const isMatched = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
-                    return (
-                      <div
-                        key={i}
-                        className={`h-5 whitespace-pre ${
-                          isMatched ? 'bg-amber-300/30 dark:bg-amber-400/20 rounded px-1' : ''
-                        }`}
-                      >
-                        {line || ' '}
+                    <div className="min-w-0">
+                      <div className="font-semibold text-xs font-display flex items-center gap-2">
+                        <span>{currentLangSpec.label}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/90 dark:bg-black/40 uppercase tracking-wider font-mono font-medium">Google Core Engineering</span>
                       </div>
-                    );
-                  })}
+                      <p className="text-[11.5px] mt-1 leading-relaxed opacity-95">{currentLangSpec.domain}</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex font-mono text-xs leading-relaxed rounded-2xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/20 p-2">
+                  <div className="select-none text-neutral-400 dark:text-neutral-600 text-right pr-4 border-r border-neutral-200 dark:border-neutral-800 py-2">
+                    {lines.map((_, i) => (
+                      <div key={i} className="h-5">
+                        {i + 1}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="pl-4 py-2 flex-1 overflow-x-auto text-neutral-800 dark:text-neutral-200">
+                    {lines.map((line, i) => {
+                      const isMatched = searchQuery && line.toLowerCase().includes(searchQuery.toLowerCase());
+                      const trimmed = line.trimStart();
+                      const isComment = trimmed.startsWith('//') || trimmed.startsWith('#') || trimmed.startsWith('/*') || trimmed.startsWith('*');
+
+                      return (
+                        <div
+                          key={i}
+                          className={`h-5 whitespace-pre ${
+                            isMatched ? 'bg-amber-300/30 dark:bg-amber-400/20 rounded px-1' : ''
+                          }`}
+                        >
+                          {isComment ? (
+                            <span className="text-emerald-700 dark:text-emerald-400 italic">{line}</span>
+                          ) : (
+                            line || ' '
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}

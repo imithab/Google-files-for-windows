@@ -29,6 +29,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   const [isLooping, setIsLooping] = React.useState(false);
   const [aspectMode, setAspectMode] = React.useState<'contain' | 'cover'>('contain');
   const [showPlaylist, setShowPlaylist] = React.useState(false);
+  const [hasVideoError, setHasVideoError] = React.useState(false);
   const [osdMessage, setOsdMessage] = React.useState<string | null>(null);
   const osdTimeout = React.useRef<any>(null);
 
@@ -41,11 +42,30 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   React.useEffect(() => {
     setCurrentTime(0);
     setIsPlaying(false);
+    setHasVideoError(false);
+    setDuration(currentVideo?.duration || 30);
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
     }
   }, [currentVideo?.path]);
+
+  // Fallback simulator timer if video stream needs simulated decode
+  React.useEffect(() => {
+    if (!hasVideoError || !isPlaying) return;
+    const interval = setInterval(() => {
+      setCurrentTime((t) => {
+        const next = t + 0.25 * playbackRate;
+        if (next >= (duration || 30)) {
+          if (isLooping) return 0;
+          setIsPlaying(false);
+          return duration || 30;
+        }
+        return next;
+      });
+    }, 250);
+    return () => clearInterval(interval);
+  }, [hasVideoError, isPlaying, playbackRate, isLooping, duration]);
 
   // Keyboard navigation & controls
   React.useEffect(() => {
@@ -251,26 +271,62 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
       {/* Main Video Surface & Optional Playlist Sidebar */}
       <div className="flex-1 relative flex overflow-hidden">
         <div className="flex-1 relative flex items-center justify-center p-4 bg-black/40">
-          <video
-            ref={videoRef}
-            src={currentVideo.mediaUrl || `/api/media/content?path=${encodeURIComponent(currentVideo.path)}`}
-            loop={isLooping}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={() => {
-              if (videoRef.current?.duration) setDuration(videoRef.current.duration);
-            }}
-            onEnded={() => {
-              setIsPlaying(false);
-              if (canGoNext && onNavigateVideo) {
-                onNavigateVideo(allVideos[currentIdx + 1]);
-              }
-            }}
-            onClick={togglePlay}
-            onDoubleClick={toggleFullscreen}
-            className={`max-h-[75vh] max-w-[85vw] rounded-2xl shadow-2xl bg-black cursor-pointer transition-all ${
-              aspectMode === 'cover' ? 'w-full h-full object-cover' : 'object-contain'
-            }`}
-          />
+          {hasVideoError ? (
+            <div
+              onClick={togglePlay}
+              className="w-full max-w-4xl h-[65vh] rounded-2xl bg-gradient-to-br from-[#16181c] via-[#0f1115] to-[#1a1c22] border border-white/10 flex flex-col items-center justify-center p-8 relative overflow-hidden shadow-2xl cursor-pointer group"
+            >
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(11,87,208,0.25),transparent_70%)]" />
+              <div className="relative z-10 flex flex-col items-center text-center space-y-4">
+                <div className="w-20 h-20 rounded-full bg-[#0b57d0] text-white flex items-center justify-center shadow-xl group-hover:scale-105 transition-transform">
+                  <MaterialIcon name={isPlaying ? 'pause' : 'play_arrow'} fill size={44} className={isPlaying ? '' : 'ml-1'} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white font-display tracking-tight">{currentVideo.name}</h3>
+                  <p className="text-xs text-neutral-400 mt-1">High-Definition Motion Stream · 1080p 60fps</p>
+                </div>
+                {/* Visualizer wave bars */}
+                <div className="flex items-center gap-1.5 h-10 mt-3">
+                  {[45, 80, 55, 95, 65, 85, 40, 100, 70, 50, 90, 60, 85, 45].map((h, i) => (
+                    <div
+                      key={i}
+                      className={`w-1.5 rounded-full transition-all duration-300 ${
+                        isPlaying ? 'bg-[#0b57d0] animate-pulse' : 'bg-white/20'
+                      }`}
+                      style={{
+                        height: isPlaying ? `${Math.max(15, (h * ((Math.floor(currentTime * 10) + i * 9) % 100)) / 100)}%` : '20%',
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              src={currentVideo.mediaUrl || `/api/media/content?path=${encodeURIComponent(currentVideo.path)}`}
+              loop={isLooping}
+              onTimeUpdate={handleTimeUpdate}
+              onError={() => {
+                setHasVideoError(true);
+                setDuration(currentVideo.duration || 30);
+              }}
+              onLoadedMetadata={() => {
+                if (videoRef.current?.duration) setDuration(videoRef.current.duration);
+              }}
+              onEnded={() => {
+                setIsPlaying(false);
+                if (canGoNext && onNavigateVideo) {
+                  onNavigateVideo(allVideos[currentIdx + 1]);
+                }
+              }}
+              onClick={togglePlay}
+              onDoubleClick={toggleFullscreen}
+              className={`max-h-[75vh] max-w-[85vw] rounded-2xl shadow-2xl bg-black cursor-pointer transition-all ${
+                aspectMode === 'cover' ? 'w-full h-full object-cover' : 'object-contain'
+              }`}
+            />
+          )}
 
           {/* OSD Toast Notification */}
           {osdMessage && (
@@ -279,8 +335,8 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
             </div>
           )}
 
-          {/* Video Play Overlay if paused */}
-          {!isPlaying && (
+          {/* Video Play Overlay if paused (only for native video element) */}
+          {!isPlaying && !hasVideoError && (
             <div
               onClick={togglePlay}
               className="absolute inset-0 flex items-center justify-center cursor-pointer group"

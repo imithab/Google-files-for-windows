@@ -302,8 +302,14 @@ export class StorageEngine {
             }
           } else {
             const classification = classifyFile(ent.name, fullVirt);
-            if (category && classification.category !== category) {
-              continue;
+            if (category) {
+              if (category === 'document') {
+                if (classification.category !== 'document' && classification.category !== 'code') {
+                  continue;
+                }
+              } else if (classification.category !== category) {
+                continue;
+              }
             }
             if (subCategory && subCategory !== 'all') {
               if (subCategory === 'favourites') {

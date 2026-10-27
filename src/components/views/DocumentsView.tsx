@@ -19,6 +19,7 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
   const filtered = React.useMemo(() => {
     if (filterType === 'all') return documents;
     if (filterType === 'pdf') return documents.filter((d) => d.extension === 'pdf');
+    if (filterType === 'code') return documents.filter((d) => ['cpp', 'cc', 'c', 'h', 'hpp', 'java', 'py', 'go', 'js', 'ts', 'tsx', 'json', 'sh', 'sql', 'rs'].includes(d.extension));
     if (filterType === 'word') return documents.filter((d) => ['doc', 'docx', 'rtf'].includes(d.extension));
     if (filterType === 'sheet') return documents.filter((d) => ['xls', 'xlsx', 'csv'].includes(d.extension));
     if (filterType === 'text') return documents.filter((d) => ['txt', 'md', 'markdown'].includes(d.extension));
@@ -30,6 +31,10 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
     if (['doc', 'docx'].includes(ext)) return <MaterialIcon name="article" fill size={22} className="text-blue-500" />;
     if (['xls', 'xlsx', 'csv'].includes(ext)) return <MaterialIcon name="table_chart" fill size={22} className="text-emerald-500" />;
     if (['md', 'txt'].includes(ext)) return <MaterialIcon name="description" fill size={22} className="text-neutral-500" />;
+    if (['cpp', 'cc', 'c', 'h', 'hpp'].includes(ext)) return <MaterialIcon name="memory" fill size={22} className="text-blue-600" />;
+    if (ext === 'java') return <MaterialIcon name="coffee" fill size={22} className="text-amber-600" />;
+    if (ext === 'py') return <MaterialIcon name="terminal" fill size={22} className="text-emerald-600" />;
+    if (ext === 'go') return <MaterialIcon name="cloud_sync" fill size={22} className="text-cyan-600" />;
     return <MaterialIcon name="code" size={22} className="text-purple-500" />;
   };
 
@@ -40,10 +45,11 @@ export const DocumentsView: React.FC<DocumentsViewProps> = ({
         <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto no-scrollbar">
           {[
             { id: 'all', label: 'All Documents' },
+            { id: 'code', label: 'Code (C++, Java, Py, Go)' },
+            { id: 'text', label: 'Markdown & Text' },
+            { id: 'sheet', label: 'Spreadsheets' },
             { id: 'pdf', label: 'PDFs' },
             { id: 'word', label: 'Word' },
-            { id: 'sheet', label: 'Spreadsheets' },
-            { id: 'text', label: 'Text & Markdown' },
           ].map((tab) => (
             <button
               key={tab.id}

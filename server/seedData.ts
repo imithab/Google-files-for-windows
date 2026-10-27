@@ -299,6 +299,330 @@ HIGHLIGHTS & KEY FEATURES
     "maxDepth": 8
   }
 }`
+    },
+    {
+      name: 'Google_Engineering_Architecture_Guide.md',
+      content: `# Google Engineering: Core Language Ecosystem & Architecture
+
+Google's infrastructure is built upon four foundational programming languages, each chosen for distinct engineering requirements:
+
+---
+
+### 1. C++: Performance-Critical Systems & Core Search
+- **Primary Domain**: High-throughput distributed storage, Google File System (GFS / Colossus), core web search ranking algorithms, Bigtable, and low-latency execution speed.
+- **Key Characteristics**: Zero-cost abstractions, direct memory control, optimized SIMD vectorization, and deterministic latency budgets (< 5ms p99).
+- **Representative File**: \`core_search_indexer.cpp\`
+
+---
+
+### 2. Java: Enterprise Systems & Android Foundations
+- **Primary Domain**: Foundational Android operating system frameworks, cross-datacenter enterprise services, Google Ad backend pipelines, and large-scale message brokering.
+- **Key Characteristics**: Robust type safety, enterprise dependency injection (Guice), robust thread scheduling, and generational garbage collection.
+- **Representative File**: \`AndroidSystemBackend.java\`
+
+---
+
+### 3. Python: Machine Learning & Rapid Tooling
+- **Primary Domain**: Deep learning model workflows (TensorFlow, JAX, Gemini), AI data science pipelines, developer productivity automation, and rapid backend micro-tooling.
+- **Key Characteristics**: Expressive syntax, rich numerical tensor libraries, dynamic scripting, and seamless C++ native binding integration.
+- **Representative File**: \`ml_dataset_pipeline.py\`
+
+---
+
+### 4. Go (Golang): Scalable Cloud Microservices
+- **Primary Domain**: Developed internally at Google to solve massive concurrency, build times, and scalability bottlenecks; powers Google Cloud Platform (GCP), Kubernetes, and modern cloud microservices.
+- **Key Characteristics**: Native goroutines, channel-based CSP concurrency, lightning-fast static compilation, and minimal runtime footprint.
+- **Representative File**: \`cloud_microservice.go\`
+
+*Documented by Google Senior Systems Engineering, 2026.*
+`
+    },
+    {
+      name: 'core_search_indexer.cpp',
+      content: `// Copyright 2026 Google LLC. All Rights Reserved.
+// Language: C++20
+// Purpose: Used for performance-critical systems, core search algorithms,
+// Google File System (GFS/Colossus), and maximum execution speed.
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <chrono>
+#include <algorithm>
+#include <unordered_map>
+#include <span>
+
+namespace google::search::core {
+
+struct DocumentScore {
+    uint64_t doc_id;
+    float page_rank;
+    float bm25_score;
+    float combined_score;
+};
+
+// High-speed inverted index segment chunk
+class IndexChunkSearcher {
+public:
+    explicit IndexChunkSearcher(std::string_view gfs_chunk_handle)
+        : chunk_handle_(gfs_chunk_handle), hit_count_(0) {}
+
+    // Vectorized SIMD-ready score evaluation
+    [[nodiscard]] std::vector<DocumentScore> EvaluatePostings(
+        std::span<const uint64_t> query_tokens,
+        float min_threshold = 0.45f) const {
+        
+        std::vector<DocumentScore> candidates;
+        candidates.reserve(1024);
+
+        for (const auto token : query_tokens) {
+            auto it = posting_cache_.find(token);
+            if (it != posting_cache_.end()) {
+                for (const auto& doc : it->second) {
+                    if (doc.combined_score >= min_threshold) {
+                        candidates.push_back(doc);
+                    }
+                }
+            }
+        }
+
+        // Sub-millisecond sort by combined relevance score
+        std::sort(candidates.begin(), candidates.end(), 
+            [](const DocumentScore& a, const DocumentScore& b) noexcept {
+                return a.combined_score > b.combined_score;
+            });
+
+        return candidates;
+    }
+
+    void RecordMetrics() noexcept {
+        ++hit_count_;
+    }
+
+private:
+    std::string chunk_handle_;
+    uint64_t hit_count_;
+    std::unordered_map<uint64_t, std::vector<DocumentScore>> posting_cache_;
+};
+
+} // namespace google::search::core
+
+int main() {
+    std::cout << "[C++ Google Engine] Initializing core search chunk indexer..." << std::endl;
+    google::search::core::IndexChunkSearcher searcher("gfs://colossus/search/index_v9_us_east.chunk");
+    std::cout << "[C++ Google Engine] Execution speed optimized for sub-millisecond p99 latency." << std::endl;
+    return 0;
+}`
+    },
+    {
+      name: 'AndroidSystemBackend.java',
+      content: `package com.google.android.system.backend;
+
+/**
+ * Copyright 2026 Google LLC.
+ * Language: Java 21 / OpenJDK
+ * Purpose: Heavily utilized for enterprise systems, backend networking,
+ * and foundational Android systems.
+ */
+
+import java.time.Instant;
+import java.util.concurrent.*;
+import java.util.logging.Logger;
+import java.util.List;
+import java.util.ArrayList;
+
+public final class AndroidSystemBackend {
+    private static final Logger logger = Logger.getLogger(AndroidSystemBackend.class.getName());
+    private final ExecutorService networkPool;
+    private final BlockingQueue<EnterpriseRequest> taskQueue;
+    private volatile boolean isRunning;
+
+    public record EnterpriseRequest(String requestId, String tenantId, long payloadSizeBytes, Instant timestamp) {}
+
+    public AndroidSystemBackend() {
+        this.networkPool = Executors.newVirtualThreadPerTaskExecutor();
+        this.taskQueue = new LinkedBlockingQueue<>(10_000);
+        this.isRunning = true;
+    }
+
+    /**
+     * Dispatches low-latency network telemetry across enterprise fleet endpoints
+     */
+    public CompletableFuture<Boolean> dispatchEnterprisePayload(EnterpriseRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            logger.info("Processing enterprise networking payload for tenant: " + request.tenantId());
+            try {
+                // Simulated Android Binder / IPC RPC dispatch
+                Thread.sleep(8);
+                return true;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }, networkPool);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("[Java Enterprise] Starting Android Enterprise System Backend...");
+        AndroidSystemBackend backend = new AndroidSystemBackend();
+        backend.dispatchEnterprisePayload(new EnterpriseRequest("REQ-8821", "Google-Corp-US", 1024 * 64, Instant.now()))
+               .thenAccept(success -> System.out.println("[Java Enterprise] Network sync completed: " + success));
+    }
+}`
+    },
+    {
+      name: 'ml_dataset_pipeline.py',
+      content: `"""
+Copyright 2026 Google LLC.
+Language: Python 3.12+
+Purpose: The preferred language for data science, machine learning models,
+automation scripts, and rapid backend tooling.
+"""
+
+from dataclasses import dataclass
+from typing import List, Dict, Any, Generator
+import json
+import time
+
+@dataclass(frozen=True)
+class TensorBatch:
+    batch_id: str
+    num_samples: int
+    dimensions: List[int]
+    dtype: str = "float32"
+
+class MLDataPipeline:
+    """Automated training dataset pipeline for Google Gemini & multimodal models."""
+
+    def __init__(self, pipeline_name: str, cache_capacity: int = 50_000):
+        self.pipeline_name = pipeline_name
+        self.cache_capacity = cache_capacity
+        self._processed_batches: List[TensorBatch] = []
+
+    def stream_tokenized_batches(self, total_batches: int = 10) -> Generator[TensorBatch, None, None]:
+        for i in range(total_batches):
+            batch = TensorBatch(
+                batch_id=f"tensor_seq_{i:04d}",
+                num_samples=128,
+                dimensions=[128, 768]
+            )
+            self._processed_batches.append(batch)
+            yield batch
+
+    def generate_pipeline_summary(self) -> Dict[str, Any]:
+        total_samples = sum(b.num_samples for b in self._processed_batches)
+        return {
+            "pipeline": self.pipeline_name,
+            "batches_ingested": len(self._processed_batches),
+            "total_samples": total_samples,
+            "status": "READY_FOR_DISTRIBUTED_TRAINING",
+            "timestamp": time.time()
+        }
+
+if __name__ == "__main__":
+    print("[Python ML] Initializing automated machine learning data pipeline...")
+    pipeline = MLDataPipeline("Gemini-Desktop-Embeddings-v2")
+    for b in pipeline.stream_tokenized_batches(5):
+        print(f"  -> Ingested {b.batch_id} | Shape: {b.dimensions}")
+    print("[Python ML] Pipeline Summary:", json.dumps(pipeline.generate_pipeline_summary(), indent=2))
+`
+    },
+    {
+      name: 'cloud_microservice.go',
+      content: `// Copyright 2026 Google LLC.
+// Language: Go 1.23+
+// Purpose: Developed internally by Google to solve scalability issues,
+// Go is extensively used across Google Cloud services and modern backend microservices.
+
+package main
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+)
+
+// CloudServiceConfig holds Google Cloud distributed configuration
+type CloudServiceConfig struct {
+	ServiceName string
+	Region      string
+	Concurrency int
+	Timeout     time.Duration
+}
+
+// MicroserviceWorker processes async RPC requests using Goroutines
+type MicroserviceWorker struct {
+	config CloudServiceConfig
+	jobs   chan string
+	wg     sync.WaitGroup
+}
+
+func NewMicroserviceWorker(cfg CloudServiceConfig) *MicroserviceWorker {
+	return &MicroserviceWorker{
+		config: cfg,
+		jobs:   make(chan string, 100),
+	}
+}
+
+func (m *MicroserviceWorker) Start(ctx context.Context) {
+	fmt.Printf("[Go Cloud] Starting %s in region %s with %d workers\\n",
+		m.config.ServiceName, m.config.Region, m.config.Concurrency)
+
+	for i := 0; i < m.config.Concurrency; i++ {
+		m.wg.Add(1)
+		go func(workerID int) {
+			defer m.wg.Done()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case job, ok := <-m.jobs:
+					if !ok {
+						return
+					}
+					// Process microservice RPC payload
+					time.Sleep(10 * time.Millisecond)
+					fmt.Printf("[Worker %d] Handled Google Cloud RPC: %s\\n", workerID, job)
+				}
+			}
+		}(i)
+	}
+}
+
+func (m *MicroserviceWorker) Submit(jobID string) {
+	m.jobs <- jobID
+}
+
+func (m *MicroserviceWorker) Stop() {
+	close(m.jobs)
+	m.wg.Wait()
+}
+
+func main() {
+	cfg := CloudServiceConfig{
+		ServiceName: "GoogleCloud-PubSub-Ingress",
+		Region:      "us-central1",
+		Concurrency: 4,
+		Timeout:     5 * time.Second,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	worker := NewMicroserviceWorker(cfg)
+	worker.Start(ctx)
+
+	for i := 1; i <= 6; i++ {
+		worker.Submit(fmt.Sprintf("gcp-event-packet-#%04d", i))
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	worker.Stop()
+	fmt.Println("[Go Cloud] Microservice execution gracefully shut down.")
+}
+`
     }
   ];
   for (const doc of documents) {
