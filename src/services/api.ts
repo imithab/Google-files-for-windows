@@ -110,11 +110,29 @@ export const api = {
     return res.json();
   },
 
-  async getTextContent(path: string): Promise<string> {
-    const res = await fetch(`/api/media/text?path=${encodeURIComponent(path)}`);
-    if (!res.ok) throw new Error('Failed to read file text');
-    const data = await res.json();
-    return data.content;
+  async getTextContent(filePath: string): Promise<string> {
+    try {
+      if (filePath.startsWith('/') || filePath.includes('/') || filePath.startsWith('.')) {
+        const hostRes = await fetch(`/api/host/read-text?path=${encodeURIComponent(filePath)}`);
+        if (hostRes.ok) {
+          const data = await hostRes.json();
+          return data.content;
+        }
+      }
+      const res = await fetch(`/api/media/text?path=${encodeURIComponent(filePath)}`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.content;
+      }
+      const hostFallback = await fetch(`/api/host/read-text?path=${encodeURIComponent(filePath)}`);
+      if (hostFallback.ok) {
+        const data = await hostFallback.json();
+        return data.content;
+      }
+    } catch {
+      // Continue to throw error
+    }
+    throw new Error('Failed to read file text');
   },
 
   async searchFiles(query: string, category?: FileCategory): Promise<{ count: number; items: FileItem[] }> {
@@ -217,6 +235,120 @@ export const api = {
   async triggerIndexingRescan(): Promise<{ success: boolean; count: number }> {
     const res = await fetch('/api/indexing/scan', { method: 'POST' });
     if (!res.ok) throw new Error('Failed to rescan index');
+    return res.json();
+  },
+
+  // Real Laptop Internal & External Storage APIs
+  async getHostDrives(): Promise<{ drives: any[] }> {
+    const res = await fetch('/api/host/drives');
+    if (!res.ok) throw new Error('Failed to fetch host laptop drives');
+    return res.json();
+  },
+
+  async browseHostDirectory(hostPath: string): Promise<{ currentPath: string; parentPath: string | null; items: any[]; stats: any }> {
+    const res = await fetch(`/api/host/browse?path=${encodeURIComponent(hostPath)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to browse laptop directory');
+    }
+    return res.json();
+  },
+
+  async createHostFolder(parentPath: string, name: string): Promise<{ success: boolean; path: string }> {
+    const res = await fetch('/api/host/create-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parentPath, name }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create folder on laptop storage');
+    }
+    return res.json();
+  },
+
+  async deleteHostItem(targetPath: string): Promise<{ success: boolean }> {
+    const res = await fetch('/api/host/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetPath }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete item from laptop storage');
+    }
+    return res.json();
+  },
+
+  async renameHostItem(targetPath: string, newName: string): Promise<{ success: boolean; path: string }> {
+    const res = await fetch('/api/host/rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetPath, newName }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to rename item on laptop storage');
+    }
+    return res.json();
+  },
+
+  async readHostText(filePath: string): Promise<{ content: string; size: number; path: string }> {
+    const res = await fetch(`/api/host/read-text?path=${encodeURIComponent(filePath)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to read file from laptop storage');
+    }
+    return res.json();
+  },
+
+  // Google Core Engineering Languages Real Services (C++, Go, Python, Java)
+  async getEnginesStatus(): Promise<{ activeLanguages: any; philosophy: any }> {
+    const res = await fetch('/api/engines/status');
+    if (!res.ok) throw new Error('Failed to fetch engines status');
+    return res.json();
+  },
+
+  async cppSearch(query: string, dir?: string): Promise<any> {
+    const url = `/api/engines/cpp/search?q=${encodeURIComponent(query)}${dir ? `&dir=${encodeURIComponent(dir)}` : ''}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('C++ Search Engine failed');
+    return res.json();
+  },
+
+  async goSync(dir?: string, workers = 4): Promise<any> {
+    const res = await fetch('/api/engines/go/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dir, workers }),
+    });
+    if (!res.ok) throw new Error('Go Sync Engine failed');
+    return res.json();
+  },
+
+  async pythonDuplicates(dir?: string): Promise<any> {
+    const res = await fetch('/api/engines/python/duplicates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dir }),
+    });
+    if (!res.ok) throw new Error('Python Duplicate Analyzer failed');
+    return res.json();
+  },
+
+  async pythonMetadata(file: string): Promise<any> {
+    const res = await fetch(`/api/engines/python/metadata?file=${encodeURIComponent(file)}`);
+    if (!res.ok) throw new Error('Python Metadata Extractor failed');
+    return res.json();
+  },
+
+  async javaTransaction(path: string, op = 'ENTERPRISE_AUDIT'): Promise<any> {
+    const res = await fetch('/api/engines/java/transaction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path, op }),
+    });
+    if (!res.ok) throw new Error('Java Enterprise Dispatcher failed');
     return res.json();
   }
 };

@@ -17,6 +17,8 @@ interface HomeDashboardProps {
   };
   onTriggerRescan?: () => void;
   isScanning?: boolean;
+  onOpenMountStorage?: () => void;
+  onOpenEngines?: () => void;
 }
 
 export const HomeDashboard: React.FC<HomeDashboardProps> = ({
@@ -25,6 +27,8 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   recentFiles,
   storageData,
   counts,
+  onOpenMountStorage,
+  onOpenEngines,
 }) => {
   // Calm, cohesive Material 3 tonal cards
   const quickCategories = [
@@ -111,6 +115,64 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
             </div>
           </button>
         ))}
+      </div>
+
+      {/* Real Laptop Storage & Core Engines Action Banners */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Real Laptop Storage Mount Card */}
+        <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-50/60 to-white dark:from-emerald-950/20 dark:to-[#1e1f20] p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
+              <MaterialIcon name="storage" size={22} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                Laptop Internal & External Storage
+              </h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Browse C:\, D:\, USB thumb drives, or custom folders
+              </p>
+            </div>
+          </div>
+          {onOpenMountStorage && (
+            <button
+              onClick={onOpenMountStorage}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-medium transition-all shadow-2xs shrink-0 flex items-center gap-1"
+            >
+              <span>Connect</span>
+              <MaterialIcon name="arrow_forward" size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Google Core Engineering Engines Card */}
+        <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/60 bg-gradient-to-br from-blue-50/60 to-white dark:from-blue-950/20 dark:to-[#1e1f20] p-4 sm:p-5 flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 flex items-center justify-center shrink-0">
+              <MaterialIcon name="terminal" size={22} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-1.5">
+                Google Core Languages
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                  C++, Go, Py, Java
+                </span>
+              </h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Search speed, goroutines sync, duplicate ML, enterprise WAL
+              </p>
+            </div>
+          </div>
+          {onOpenEngines && (
+            <button
+              onClick={onOpenEngines}
+              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-medium transition-all shadow-2xs shrink-0 flex items-center gap-1"
+            >
+              <span>Inspect</span>
+              <MaterialIcon name="arrow_forward" size={14} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Storage Progress Card (Clean Google One / Files M3 Style) */}

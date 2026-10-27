@@ -23,6 +23,8 @@ interface TitleBarProps {
   onNewTab: () => void;
   theme: 'light' | 'dark' | 'system';
   onToggleTheme: () => void;
+  onOpenEngines?: () => void;
+  onOpenMountStorage?: () => void;
 }
 
 export const TitleBar: React.FC<TitleBarProps> = ({
@@ -34,6 +36,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   onNewTab,
   theme,
   onToggleTheme,
+  onOpenEngines,
+  onOpenMountStorage,
 }) => {
   const [isMaximized, setIsMaximized] = React.useState(false);
 
@@ -120,8 +124,30 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         ) : null}
       </div>
 
-      {/* Right: Theme Toggle & Window Controls */}
-      <div className="flex items-center gap-1 shrink-0 titlebar-no-drag">
+      {/* Right: Engine Indicator, Mount Storage, Theme Toggle & Window Controls */}
+      <div className="flex items-center gap-1.5 shrink-0 titlebar-no-drag">
+        {onOpenMountStorage && (
+          <button
+            onClick={onOpenMountStorage}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-all"
+            title="Connect Real Laptop Storage or USB Drive"
+          >
+            <MaterialIcon name="storage" size={15} />
+            <span className="hidden sm:inline">Laptop Storage</span>
+          </button>
+        )}
+
+        {onOpenEngines && (
+          <button
+            onClick={onOpenEngines}
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-all"
+            title="Google Core Engineering Engines: C++, Go, Python, Java"
+          >
+            <MaterialIcon name="terminal" size={15} />
+            <span className="hidden sm:inline">C++ / Go / Py / Java</span>
+          </button>
+        )}
+
         <button
           onClick={onToggleTheme}
           className="p-1.5 rounded-full text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-neutral-100 hover:bg-neutral-200/70 dark:hover:bg-neutral-800 transition-colors"

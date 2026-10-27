@@ -14,6 +14,7 @@ export interface FileItem {
   isFavourite?: boolean;
   thumbnailUrl?: string;
   mediaUrl?: string;
+  url?: string;
   duration?: number; // for audio/video in seconds
   dimensions?: { width: number; height: number }; // for photos/videos
   exif?: {

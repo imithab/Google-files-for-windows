@@ -34,6 +34,8 @@ import {
   RenameDialog,
   PropertiesModal,
 } from './components/modals/Dialogs';
+import { GoogleEnginesModal } from './components/modals/GoogleEnginesModal';
+import { MountStorageModal } from './components/modals/MountStorageModal';
 
 import { api } from './services/api';
 import {
@@ -47,7 +49,7 @@ import {
   AppSettings,
   OperationProgress,
 } from './types';
-import { getParentPath, normalizeWindowsPath } from './utils/fileSystemLogic';
+import { getParentPath, normalizeWindowsPath, classifyFile } from './utils/fileSystemLogic';
 
 export default function App() {
   // Navigation & View state
@@ -147,6 +149,8 @@ export default function App() {
   const [propertiesItem, setPropertiesItem] = React.useState<FileItem | null>(null);
   const [isNewFolderOpen, setIsNewFolderOpen] = React.useState(false);
   const [renameItem, setRenameItem] = React.useState<FileItem | null>(null);
+  const [isEnginesModalOpen, setIsEnginesModalOpen] = React.useState(false);
+  const [isMountModalOpen, setIsMountModalOpen] = React.useState(false);
   const [contextMenu, setContextMenu] = React.useState<ContextMenuState>({
     visible: false,
     x: 0,
@@ -222,14 +226,50 @@ export default function App() {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Browse Directory for Explorer
+  // Browse Directory for Explorer (Supports both Virtual Drives and Real Host Laptop Storage)
   const loadDirectory = React.useCallback(async (p: string) => {
     try {
+      if (p.startsWith('/') || p.startsWith('.') || (p.includes('/') && !p.includes('\\'))) {
+        const hostRes = await api.browseHostDirectory(p);
+        const mappedItems: FileItem[] = hostRes.items.map((it: any) => ({
+          id: it.path,
+          name: it.name,
+          path: it.path,
+          isFolder: it.isDirectory,
+          size: it.size,
+          mtime: it.modified,
+          birthtime: it.modified || Date.now(),
+          category: it.category,
+          extension: it.extension ? it.extension.replace('.', '') : '',
+          url: `/api/host/stream?path=${encodeURIComponent(it.path)}`
+        }));
+        setExplorerItems(mappedItems);
+        setSelectedIds([]);
+        return;
+      }
       const res = await api.browseDirectory(p);
       setExplorerItems(res.items);
       setSelectedIds([]);
     } catch (err: any) {
-      console.error('Error browsing directory:', err.message);
+      try {
+        const hostRes = await api.browseHostDirectory(p);
+        const mappedItems: FileItem[] = hostRes.items.map((it: any) => ({
+          id: it.path,
+          name: it.name,
+          path: it.path,
+          isFolder: it.isDirectory,
+          size: it.size,
+          mtime: it.modified,
+          birthtime: it.modified || Date.now(),
+          category: it.category,
+          extension: it.extension ? it.extension.replace('.', '') : '',
+          url: `/api/host/stream?path=${encodeURIComponent(it.path)}`
+        }));
+        setExplorerItems(mappedItems);
+        setSelectedIds([]);
+      } catch (hostErr: any) {
+        console.error('Error browsing directory:', hostErr.message);
+      }
     }
   }, []);
 
@@ -526,11 +566,15 @@ export default function App() {
     });
   };
 
-  // Real File Operations
+  // Real File Operations (Virtual and Laptop Storage)
   const handleCreateFolder = async (name: string) => {
     setIsNewFolderOpen(false);
     try {
-      await api.createFolder(currentPath, name);
+      if (currentPath.startsWith('/') || currentPath.includes('/')) {
+        await api.createHostFolder(currentPath, name);
+      } else {
+        await api.createFolder(currentPath, name);
+      }
       loadDirectory(currentPath);
     } catch (err: any) {
       setOperationProgress({
@@ -549,9 +593,14 @@ export default function App() {
 
   const handleRename = async (newName: string) => {
     if (!renameItem) return;
+    const target = renameItem;
     setRenameItem(null);
     try {
-      await api.renameItem(renameItem.path, newName);
+      if (target.path.startsWith('/') || target.path.includes('/')) {
+        await api.renameHostItem(target.path, newName);
+      } else {
+        await api.renameItem(target.path, newName);
+      }
       loadDirectory(currentPath);
       loadInitialData();
     } catch (err: any) {
@@ -586,7 +635,11 @@ export default function App() {
     let count = 0;
     for (const item of itemsToDelete) {
       try {
-        await api.deleteItem(item.path, permanent);
+        if (item.path.startsWith('/') || item.path.includes('/')) {
+          await api.deleteHostItem(item.path);
+        } else {
+          await api.deleteItem(item.path, permanent);
+        }
         count++;
         setOperationProgress((prev) =>
           prev
@@ -756,6 +809,8 @@ export default function App() {
           setSettings((prev) => ({ ...prev, theme: next }));
           api.updateSettings({ theme: next });
         }}
+        onOpenEngines={() => setIsEnginesModalOpen(true)}
+        onOpenMountStorage={() => setIsMountModalOpen(true)}
       />
 
       {/* 2. Top Command & Action Bar */}
@@ -810,6 +865,8 @@ export default function App() {
           counts={sidebarCounts}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onOpenEngines={() => setIsEnginesModalOpen(true)}
+          onOpenMountStorage={() => setIsMountModalOpen(true)}
         />
 
         {/* Primary View Router */}
@@ -823,6 +880,8 @@ export default function App() {
               counts={sidebarCounts}
               onTriggerRescan={handleTriggerRescan}
               isScanning={isScanning}
+              onOpenMountStorage={() => setIsMountModalOpen(true)}
+              onOpenEngines={() => setIsEnginesModalOpen(true)}
             />
           )}
 
@@ -1167,6 +1226,62 @@ export default function App() {
       <ProgressBarToast
         progress={operationProgress}
         onDismiss={() => setOperationProgress(null)}
+      />
+
+      {/* Google Core Engineering Languages (C++, Go, Python, Java) Modal */}
+      <GoogleEnginesModal
+        isOpen={isEnginesModalOpen}
+        onClose={() => setIsEnginesModalOpen(false)}
+        currentPath={currentPath}
+      />
+
+      {/* Real Laptop Storage Mount & Explorer Modal */}
+      <MountStorageModal
+        isOpen={isMountModalOpen}
+        onClose={() => setIsMountModalOpen(false)}
+        onMountPath={(p) => {
+          handleNavigatePath(p);
+        }}
+        onMountDirectoryHandle={async (dirHandle: FileSystemDirectoryHandle) => {
+          try {
+            const items: FileItem[] = [];
+            for await (const entry of (dirHandle as any).values()) {
+              if (entry.kind === 'file') {
+                const file = await entry.getFile();
+                const classification = classifyFile(entry.name);
+                items.push({
+                  id: `${dirHandle.name}/${entry.name}`,
+                  name: entry.name,
+                  path: `${dirHandle.name}/${entry.name}`,
+                  isFolder: false,
+                  size: file.size,
+                  mtime: file.lastModified,
+                  birthtime: file.lastModified,
+                  category: classification.category,
+                  extension: entry.name.split('.').pop() || '',
+                  url: URL.createObjectURL(file),
+                });
+              } else if (entry.kind === 'directory') {
+                items.push({
+                  id: `${dirHandle.name}/${entry.name}`,
+                  name: entry.name,
+                  path: `${dirHandle.name}/${entry.name}`,
+                  isFolder: true,
+                  size: 0,
+                  mtime: Date.now(),
+                  birthtime: Date.now(),
+                  category: 'document',
+                  extension: '',
+                });
+              }
+            }
+            setExplorerItems(items);
+            setCurrentPath(`Laptop Drive: ${dirHandle.name}`);
+            setCurrentView('explorer');
+          } catch (err: any) {
+            console.error('Directory read error:', err);
+          }
+        }}
       />
     </div>
   );

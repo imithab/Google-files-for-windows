@@ -10,5 +10,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   maximize: () => ipcRenderer.send('window-maximize'),
   close: () => ipcRenderer.send('window-close'),
   isMaximized: () => ipcRenderer.invoke('window-is-maximized'),
+  selectDirectory: () => ipcRenderer.invoke('dialog:openDirectory'),
+  getLogicalDrives: () => ipcRenderer.invoke('storage:getLogicalDrives'),
   platform: process.platform,
+  isDesktop: true,
 });

@@ -3,9 +3,10 @@
  * Production-ready Windows wrapper for Files Studio
  */
 
-const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('node:path');
 const http = require('node:http');
+const fs = require('node:fs');
 
 let mainWindow = null;
 let serverProcess = null;
@@ -52,6 +53,39 @@ function createWindow() {
 
   ipcMain.handle('window-is-maximized', () => {
     return mainWindow ? mainWindow.isMaximized() : false;
+  });
+
+  // Handle native Windows directory selection dialog
+  ipcMain.handle('dialog:openDirectory', async () => {
+    if (!mainWindow) return { canceled: true, filePaths: [] };
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Select Folder or Drive to Mount in Files Studio',
+      properties: ['openDirectory', 'dontAddToRecent']
+    });
+    return result;
+  });
+
+  // Enumerate host drives
+  ipcMain.handle('storage:getLogicalDrives', async () => {
+    const drives = [];
+    if (process.platform === 'win32') {
+      const letters = ['C', 'D', 'E', 'F', 'G', 'H'];
+      for (const l of letters) {
+        const root = `${l}:\\`;
+        if (fs.existsSync(root)) {
+          drives.push({
+            letter: l,
+            path: root,
+            name: l === 'C' ? 'Local Disk (C:)' : `Volume (${l}:)`,
+            isRemovable: l !== 'C'
+          });
+        }
+      }
+    } else {
+      drives.push({ letter: '/', path: '/', name: 'Internal Storage (Root)', isRemovable: false });
+      drives.push({ letter: '~', path: require('node:os').homedir(), name: 'User Home', isRemovable: false });
+    }
+    return drives;
   });
 
   // Open external links in default OS browser

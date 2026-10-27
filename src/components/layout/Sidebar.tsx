@@ -24,6 +24,8 @@ interface SidebarProps {
   };
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onOpenEngines?: () => void;
+  onOpenMountStorage?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,6 +35,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   counts,
   isCollapsed,
   onToggleCollapse,
+  onOpenEngines,
+  onOpenMountStorage,
 }) => {
   const [openSections, setOpenSections] = React.useState({
     main: true,
@@ -190,11 +194,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => toggleSection('storage')}
               className="flex items-center justify-between px-3 py-1 text-[11px] font-medium text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer select-none"
             >
-              <span>Storage</span>
+              <span>Storage & Engines</span>
               <MaterialIcon name={openSections.storage ? 'expand_more' : 'chevron_right'} size={16} />
             </div>
           )}
-          {(openSections.storage || isCollapsed) && renderNavList(storageItems)}
+          {(openSections.storage || isCollapsed) && (
+            <div className="space-y-1">
+              {renderNavList(storageItems)}
+              {onOpenMountStorage && (
+                <button
+                  onClick={onOpenMountStorage}
+                  className="w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-xs font-sans text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                  title="Mount Laptop Folder or Drive"
+                >
+                  <MaterialIcon name="storage" size={19} className="text-emerald-600 dark:text-emerald-400" />
+                  {!isCollapsed && <span className="font-medium truncate">Connect Laptop Disk</span>}
+                </button>
+              )}
+              {onOpenEngines && (
+                <button
+                  onClick={onOpenEngines}
+                  className="w-full flex items-center gap-3 px-3.5 py-2 rounded-full text-xs font-sans text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-colors"
+                  title="Google Core Engineering Engines"
+                >
+                  <MaterialIcon name="terminal" size={19} className="text-blue-600 dark:text-blue-400" />
+                  {!isCollapsed && <span className="font-medium truncate">Core Engines</span>}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
